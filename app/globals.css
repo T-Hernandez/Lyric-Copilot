@@ -127,3 +127,42 @@
     @apply font-sans;
     }
 }
+
+/* ── TipTap editor ─────────────────────────────────────────── */
+.song-editor .tiptap {
+  outline: none;
+  font-size: 1rem;
+  line-height: 1.8;
+  min-height: 24rem;
+}
+
+.song-editor .tiptap p {
+  margin: 0.2rem 0;
+}
+
+.song-editor .tiptap p.is-editor-empty:first-child::before {
+  color: var(--muted-foreground);
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* SongSection label node */
+.song-editor .tiptap [data-type="song-section"] {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--muted-foreground);
+  margin-top: 1.75rem;
+  margin-bottom: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  border-left: 2px solid var(--border);
+  user-select: none;
+  cursor: default;
+}
+
+.song-editor .tiptap [data-type="song-section"]:first-child {
+  margin-top: 0;
+}
