@@ -8,6 +8,7 @@ const CreateSongSchema = z.object({
   genre: z.string().max(100).optional(),
   mood: z.string().max(100).optional(),
   language: z.enum(["es", "en"]).default("es"),
+  styleReferenceIds: z.array(z.string().uuid()).max(3).optional(),
 });
 
 export async function GET() {
@@ -39,12 +40,25 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { data, error } = await sb
+  const { styleReferenceIds, ...songData } = parsed.data;
+
+  const { data: song, error } = await sb
     .from("songs")
-    .insert({ ...parsed.data, user_id: user.id })
+    .insert({ ...songData, user_id: user.id })
     .select()
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json(data, { status: 201 });
+
+  if (styleReferenceIds?.length) {
+    await sb.from("song_style_references").insert(
+      styleReferenceIds.map((id) => ({
+        song_id: song.id,
+        style_reference_id: id,
+        source: "curated_manual" as const,
+      }))
+    );
+  }
+
+  return NextResponse.json(song, { status: 201 });
 }

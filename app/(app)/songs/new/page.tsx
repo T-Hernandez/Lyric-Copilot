@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { StyleReferenceSelector } from "@/components/StyleReferenceSelector";
 
 const GENRES = [
   "Pop", "Rock", "Folk", "Reggaeton", "Cumbia",
@@ -28,6 +29,7 @@ export default function NewSongPage() {
   const [genre, setGenre] = useState("");
   const [mood, setMood] = useState("");
   const [language, setLanguage] = useState("es");
+  const [styleReferenceIds, setStyleReferenceIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,6 +45,7 @@ export default function NewSongPage() {
       genre: genre || undefined,
       mood: mood || undefined,
       language,
+      styleReferenceIds: styleReferenceIds.length ? styleReferenceIds : undefined,
     };
 
     try {
@@ -147,6 +150,17 @@ export default function NewSongPage() {
               <SelectItem value="en">Inglés</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label>
+            Referencias de estilo{" "}
+            <span className="text-muted-foreground font-normal">(opcional, máx. 3)</span>
+          </Label>
+          <StyleReferenceSelector
+            selectedIds={styleReferenceIds}
+            onChange={setStyleReferenceIds}
+          />
         </div>
 
         {error && <p className="text-sm text-destructive">{error}</p>}

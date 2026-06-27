@@ -1,6 +1,6 @@
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { streamCompletion } from "@/lib/llm/router";
-import { buildGeneratePrompt } from "@/lib/llm/prompts/generate";
+import { buildGeneratePrompt, type StyleTraitEntry } from "@/lib/llm/prompts/generate";
 import { saveNewVersion } from "@/lib/songs/versioning";
 
 type Params = Promise<{ id: string }>;
@@ -22,6 +22,23 @@ export async function POST(_req: Request, { params }: { params: Params }) {
 
   if (!song) return new Response(JSON.stringify({ error: "Not found" }), { status: 404 });
 
+  // Fetch style references with their traits
+  const { data: styleRows } = await sb
+    .from("song_style_references")
+    .select("style_reference_id, style_references(artist_name, style_traits)")
+    .eq("song_id", id)
+    .not("style_reference_id", "is", null);
+
+  const styleReferences: StyleTraitEntry[] = (styleRows ?? [])
+    .filter((r) => r.style_references)
+    .map((r) => {
+      const ref = r.style_references as unknown as { artist_name: string; style_traits: Record<string, string> };
+      return {
+        artistName: ref.artist_name,
+        traits: ref.style_traits,
+      };
+    });
+
   await sb.from("songs").update({ status: "generating" }).eq("id", id);
 
   const { systemPrompt, userPrompt } = buildGeneratePrompt({
@@ -29,6 +46,7 @@ export async function POST(_req: Request, { params }: { params: Params }) {
     genre: song.genre,
     mood: song.mood,
     language: song.language,
+    styleReferences,
   });
 
   const enc = new TextEncoder();

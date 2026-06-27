@@ -18,7 +18,8 @@
       "PowerShell($res = Invoke-WebRequest -Uri \"http://localhost:3000\" -MaximumRedirection 0 -ErrorAction SilentlyContinue; \"Status: $\\($res.StatusCode\\) -> $\\($res.Headers.Location\\)\")",
       "Bash(curl -s -o /dev/null -w \"%{http_code} -> Location: %{redirect_url}\" -L --max-redirs 0 http://localhost:3000/)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/login)",
-      "Bash(mkdir -p \"c:/Users/fines/Downloads/Lyric-Copilot/lib/llm/providers\" \"c:/Users/fines/Downloads/Lyric-Copilot/lib/llm/prompts\" \"c:/Users/fines/Downloads/Lyric-Copilot/app/api/songs/[id]/generate\")"
+      "Bash(mkdir -p \"c:/Users/fines/Downloads/Lyric-Copilot/lib/llm/providers\" \"c:/Users/fines/Downloads/Lyric-Copilot/lib/llm/prompts\" \"c:/Users/fines/Downloads/Lyric-Copilot/app/api/songs/[id]/generate\")",
+      "Read(//c/Users/fines/.claude/projects/c--Users-fines-Downloads-Lyric-Copilot/memory/**)"
     ],
     "additionalDirectories": [
       "c:\\Users\\fines\\Downloads\\Lyric-Copilot\\app\\api\\songs\\[id]"
