@@ -26,11 +26,60 @@ type Song = {
   current_version: CurrentVersion | null;
 };
 
+// Maps [section tag] from LLM output → TipTap SongSection type
+const TAG_MAP: Record<string, SectionType> = {
+  "intro": "intro",
+  "verso": "verse",
+  "verso 1": "verse",
+  "verso 2": "verse",
+  "verso 3": "verse",
+  "verso 4": "verse",
+  "pre-coro": "prechorus",
+  "pre coro": "prechorus",
+  "precoro": "prechorus",
+  "coro": "chorus",
+  "estribillo": "chorus",
+  "puente": "bridge",
+  "bridge": "bridge",
+  "outro": "outro",
+};
+
+function textToTiptapJson(text: string) {
+  const lines = text.split("\n");
+  const content: object[] = [];
+  let hasContent = false;
+
+  for (const line of lines) {
+    const tagMatch = line.match(/^\[([^\]]+)\]/);
+    if (tagMatch) {
+      const key = tagMatch[1].toLowerCase().trim();
+      const sectionType = TAG_MAP[key];
+      if (sectionType) {
+        content.push({ type: "songSection", attrs: { sectionType } });
+        hasContent = true;
+        continue;
+      }
+    }
+    const trimmed = line.trim();
+    if (trimmed || hasContent) {
+      content.push({
+        type: "paragraph",
+        content: trimmed ? [{ type: "text", text: trimmed }] : [],
+      });
+      if (trimmed) hasContent = true;
+    }
+  }
+
+  return { type: "doc", content: content.length ? content : [{ type: "paragraph" }] };
+}
+
 export function SongEditor({ song }: { song: Song }) {
   const router = useRouter();
   const [title, setTitle] = useState(song.title);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [hasChanges, setHasChanges] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [genError, setGenError] = useState<string | null>(null);
 
   const editor = useEditor({
     extensions: [
@@ -74,6 +123,37 @@ export function SongEditor({ song }: { song: Song }) {
     }
   }, [editor, saveStatus, song.id, song.title, title]);
 
+  const generate = useCallback(async () => {
+    if (!editor || generating) return;
+    const hasExistingContent = editor.getText().trim().length > 0;
+    if (
+      hasExistingContent &&
+      !window.confirm("¿Reemplazar el contenido actual con una letra generada por IA?")
+    ) {
+      return;
+    }
+
+    setGenerating(true);
+    setGenError(null);
+
+    try {
+      const res = await fetch(`/api/songs/${song.id}/generate`, { method: "POST" });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error ?? "Error al generar");
+      }
+      const { text } = await res.json();
+      const tiptapJson = textToTiptapJson(text);
+      editor.commands.setContent(tiptapJson);
+      setHasChanges(false); // ya se guardó en el servidor
+    } catch (err) {
+      setGenError(err instanceof Error ? err.message : "Error desconocido");
+      setTimeout(() => setGenError(null), 5000);
+    } finally {
+      setGenerating(false);
+    }
+  }, [editor, generating, song.id]);
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "s") {
@@ -114,7 +194,7 @@ export function SongEditor({ song }: { song: Song }) {
         </div>
       </div>
 
-      {/* Section toolbar */}
+      {/* Toolbar */}
       <div className="border-b px-4 py-2 flex items-center gap-2 flex-wrap">
         <span className="text-xs text-muted-foreground mr-1">Insertar:</span>
         {(Object.entries(SECTION_LABELS) as [SectionType, string][]).map(([type, label]) => (
@@ -128,7 +208,24 @@ export function SongEditor({ song }: { song: Song }) {
             {label}
           </Button>
         ))}
+        <div className="ml-auto">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={generate}
+            disabled={generating}
+          >
+            {generating ? "Generando..." : "✦ Generar con IA"}
+          </Button>
+        </div>
       </div>
+
+      {/* Error de generación */}
+      {genError && (
+        <div className="px-4 py-2 bg-destructive/10 text-destructive text-sm border-b">
+          {genError}
+        </div>
+      )}
 
       {/* Editor area */}
       <div className="flex-1 max-w-2xl mx-auto w-full px-6 py-8">
