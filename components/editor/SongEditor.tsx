@@ -26,7 +26,6 @@ type Song = {
   current_version: CurrentVersion | null;
 };
 
-// Maps [section tag] from LLM output → TipTap SongSection type
 const TAG_MAP: Record<string, SectionType> = {
   "intro": "intro",
   "verso": "verse",
@@ -78,7 +77,8 @@ export function SongEditor({ song }: { song: Song }) {
   const [title, setTitle] = useState(song.title);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [hasChanges, setHasChanges] = useState(false);
-  const [generating, setGenerating] = useState(false);
+  // null = editor visible; string = streaming in progress (shows the accumulated text)
+  const [streamingText, setStreamingText] = useState<string | null>(null);
   const [genError, setGenError] = useState<string | null>(null);
 
   const editor = useEditor({
@@ -124,8 +124,9 @@ export function SongEditor({ song }: { song: Song }) {
   }, [editor, saveStatus, song.id, song.title, title]);
 
   const generate = useCallback(async () => {
-    if (!editor || generating) return;
-    const hasExistingContent = editor.getText().trim().length > 0;
+    if (streamingText !== null) return;
+
+    const hasExistingContent = editor?.getText().trim().length ?? 0 > 0;
     if (
       hasExistingContent &&
       !window.confirm("¿Reemplazar el contenido actual con una letra generada por IA?")
@@ -133,26 +134,57 @@ export function SongEditor({ song }: { song: Song }) {
       return;
     }
 
-    setGenerating(true);
+    setStreamingText("");
     setGenError(null);
 
     try {
       const res = await fetch(`/api/songs/${song.id}/generate`, { method: "POST" });
-      if (!res.ok) {
-        const err = await res.json();
+      if (!res.ok || !res.body) {
+        const err = await res.json().catch(() => ({ error: "Error de red" }));
         throw new Error(err.error ?? "Error al generar");
       }
-      const { text } = await res.json();
-      const tiptapJson = textToTiptapJson(text);
-      editor.commands.setContent(tiptapJson);
-      setHasChanges(false); // ya se guardó en el servidor
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let accumulated = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const raw = line.slice(6).trim();
+          if (!raw) continue;
+          const event = JSON.parse(raw) as { text?: string; done?: boolean; error?: string };
+
+          if (event.error) throw new Error(event.error);
+
+          if (event.text) {
+            accumulated += event.text;
+            setStreamingText(accumulated);
+          }
+
+          if (event.done) {
+            const tiptapJson = textToTiptapJson(accumulated);
+            editor?.commands.setContent(tiptapJson);
+            setStreamingText(null);
+            setHasChanges(false);
+            return;
+          }
+        }
+      }
     } catch (err) {
+      setStreamingText(null);
       setGenError(err instanceof Error ? err.message : "Error desconocido");
-      setTimeout(() => setGenError(null), 5000);
-    } finally {
-      setGenerating(false);
+      setTimeout(() => setGenError(null), 6000);
     }
-  }, [editor, generating, song.id]);
+  }, [editor, song.id, streamingText]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -164,6 +196,8 @@ export function SongEditor({ song }: { song: Song }) {
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
   }, [save]);
+
+  const isGenerating = streamingText !== null;
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -180,6 +214,7 @@ export function SongEditor({ song }: { song: Song }) {
           }}
           className="text-base font-semibold border-0 shadow-none focus-visible:ring-0 px-0 h-auto flex-1"
           placeholder="Sin título"
+          disabled={isGenerating}
         />
         <div className="flex items-center gap-3 shrink-0">
           <span className="text-xs text-muted-foreground min-w-[80px] text-right">
@@ -188,7 +223,7 @@ export function SongEditor({ song }: { song: Song }) {
             {saveStatus === "error" && "Error al guardar"}
             {saveStatus === "idle" && hasChanges && "Sin guardar"}
           </span>
-          <Button onClick={save} disabled={saveStatus === "saving"} size="sm">
+          <Button onClick={save} disabled={saveStatus === "saving" || isGenerating} size="sm">
             Guardar
           </Button>
         </div>
@@ -203,6 +238,7 @@ export function SongEditor({ song }: { song: Song }) {
             variant="outline"
             size="sm"
             className="h-6 text-xs px-2 py-0"
+            disabled={isGenerating}
             onClick={() => editor?.chain().focus().insertSongSection(type).run()}
           >
             {label}
@@ -213,9 +249,9 @@ export function SongEditor({ song }: { song: Song }) {
             variant="secondary"
             size="sm"
             onClick={generate}
-            disabled={generating}
+            disabled={isGenerating}
           >
-            {generating ? "Generando..." : "✦ Generar con IA"}
+            {isGenerating ? "Generando..." : "✦ Generar con IA"}
           </Button>
         </div>
       </div>
@@ -227,9 +263,16 @@ export function SongEditor({ song }: { song: Song }) {
         </div>
       )}
 
-      {/* Editor area */}
+      {/* Contenido: streaming preview o editor */}
       <div className="flex-1 max-w-2xl mx-auto w-full px-6 py-8">
-        <EditorContent editor={editor} className="song-editor min-h-96" />
+        {isGenerating ? (
+          <div className="text-base leading-[1.8] whitespace-pre-wrap text-foreground min-h-96">
+            {streamingText}
+            <span className="inline-block w-0.5 h-4 bg-foreground/60 ml-px align-middle animate-pulse" />
+          </div>
+        ) : (
+          <EditorContent editor={editor} className="song-editor min-h-96" />
+        )}
       </div>
     </div>
   );

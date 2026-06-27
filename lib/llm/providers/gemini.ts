@@ -1,11 +1,38 @@
 type LLMParams = { systemPrompt: string; userPrompt: string };
 
-export async function generateWithGemini({ systemPrompt, userPrompt }: LLMParams): Promise<string> {
+async function* readSSEChunks(body: ReadableStream<Uint8Array>): AsyncGenerator<string> {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() ?? "";
+
+    for (const line of lines) {
+      if (!line.startsWith("data: ")) continue;
+      const raw = line.slice(6).trim();
+      if (!raw) continue;
+      try {
+        const json = JSON.parse(raw);
+        const text: string = json?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+        if (text) yield text;
+      } catch {
+        // ignore malformed events
+      }
+    }
+  }
+}
+
+export async function* generateWithGemini({ systemPrompt, userPrompt }: LLMParams): AsyncGenerator<string> {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw new Error("GEMINI_API_KEY not set");
 
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?key=${key}&alt=sse`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -17,12 +44,8 @@ export async function generateWithGemini({ systemPrompt, userPrompt }: LLMParams
     }
   );
 
-  if (res.status === 429) {
-    const err = Object.assign(new Error("Gemini rate limited"), { status: 429 });
-    throw err;
-  }
-  if (!res.ok) throw new Error(`Gemini error: ${res.status} ${await res.text()}`);
+  if (res.status === 429) throw Object.assign(new Error("Gemini rate limited"), { status: 429 });
+  if (!res.ok) throw new Error(`Gemini error: ${res.status}`);
 
-  const data = await res.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+  yield* readSSEChunks(res.body!);
 }

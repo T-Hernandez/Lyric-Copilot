@@ -25,20 +25,22 @@ function isRateLimitError(err: unknown): boolean {
   );
 }
 
-export async function generateCompletion(params: {
+export async function* streamCompletion(params: {
   systemPrompt: string;
   userPrompt: string;
   userId: string;
   songId?: string;
   callType: "generate" | "rewrite";
-}): Promise<string> {
+}): AsyncGenerator<string> {
   const order = getFallbackOrder();
   let lastError: unknown;
 
   for (const provider of order) {
     const startedAt = Date.now();
     try {
-      const text = await PROVIDERS[provider]({
+      // Rate limit check happens inside the provider before yielding,
+      // so fallback is safe — no data has been sent to the client yet.
+      yield* PROVIDERS[provider]({
         systemPrompt: params.systemPrompt,
         userPrompt: params.userPrompt,
       });
@@ -50,7 +52,7 @@ export async function generateCompletion(params: {
         status: "success",
         latencyMs: Date.now() - startedAt,
       }).catch(() => {});
-      return text;
+      return;
     } catch (err) {
       lastError = err;
       const isRateLimit = isRateLimitError(err);

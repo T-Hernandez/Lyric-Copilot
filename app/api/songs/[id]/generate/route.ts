@@ -1,6 +1,5 @@
-import { NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase/server";
-import { generateCompletion } from "@/lib/llm/router";
+import { streamCompletion } from "@/lib/llm/router";
 import { buildGeneratePrompt } from "@/lib/llm/prompts/generate";
 import { saveNewVersion } from "@/lib/songs/versioning";
 
@@ -13,7 +12,7 @@ export async function POST(_req: Request, { params }: { params: Params }) {
   const {
     data: { user },
   } = await sb.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
 
   const { data: song } = await sb
     .from("songs")
@@ -21,37 +20,57 @@ export async function POST(_req: Request, { params }: { params: Params }) {
     .eq("id", id)
     .single();
 
-  if (!song) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!song) return new Response(JSON.stringify({ error: "Not found" }), { status: 404 });
 
   await sb.from("songs").update({ status: "generating" }).eq("id", id);
 
-  try {
-    const { systemPrompt, userPrompt } = buildGeneratePrompt({
-      theme: song.theme,
-      genre: song.genre,
-      mood: song.mood,
-      language: song.language,
-    });
+  const { systemPrompt, userPrompt } = buildGeneratePrompt({
+    theme: song.theme,
+    genre: song.genre,
+    mood: song.mood,
+    language: song.language,
+  });
 
-    const text = await generateCompletion({
-      systemPrompt,
-      userPrompt,
-      userId: user.id,
-      songId: id,
-      callType: "generate",
-    });
+  const enc = new TextEncoder();
+  let fullText = "";
 
-    await saveNewVersion({
-      songId: id,
-      plainText: text,
-      createdBy: user.id,
-      changeSummary: "Generación con IA",
-    });
+  const stream = new ReadableStream({
+    async start(controller) {
+      try {
+        for await (const chunk of streamCompletion({
+          systemPrompt,
+          userPrompt,
+          userId: user.id,
+          songId: id,
+          callType: "generate",
+        })) {
+          fullText += chunk;
+          controller.enqueue(enc.encode(`data: ${JSON.stringify({ text: chunk })}\n\n`));
+        }
 
-    return NextResponse.json({ text });
-  } catch (err) {
-    await sb.from("songs").update({ status: "draft" }).eq("id", id);
-    console.error("[generate]", err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
-  }
+        await saveNewVersion({
+          songId: id,
+          plainText: fullText,
+          createdBy: user.id,
+          changeSummary: "Generación con IA",
+        });
+
+        controller.enqueue(enc.encode(`data: ${JSON.stringify({ done: true })}\n\n`));
+        controller.close();
+      } catch (err) {
+        await sb.from("songs").update({ status: "draft" }).eq("id", id);
+        console.error("[generate]", err);
+        controller.enqueue(enc.encode(`data: ${JSON.stringify({ error: String(err) })}\n\n`));
+        controller.close();
+      }
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+    },
+  });
 }
