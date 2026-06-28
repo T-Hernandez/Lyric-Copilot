@@ -5,6 +5,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import { SongSection, SECTION_LABELS, type SectionType } from "./extensions/SongSection";
 import { AiRewriteToolbar } from "./AiRewriteToolbar";
+import { VersionHistoryPanel } from "./VersionHistoryPanel";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -89,6 +90,9 @@ export function SongEditor({ song }: { song: Song }) {
   const [streamingText, setStreamingText] = useState<string | null>(null);
   const [genError, setGenError] = useState<string | null>(null);
 
+  // Version history panel
+  const [showHistory, setShowHistory] = useState(false);
+
   // Inline rewrite toolbar
   const [rewriteAnchor, setRewriteAnchor] = useState<RewriteAnchor | null>(null);
   // Keep a ref so onAccept closure always has the latest anchor even after re-renders
@@ -146,6 +150,16 @@ export function SongEditor({ song }: { song: Song }) {
     setRewriteAnchor(null);
     rewriteAnchorRef.current = null;
   }, []);
+
+  const handleRestore = useCallback(
+    (tiptapJson: object) => {
+      if (!editor) return;
+      editor.commands.setContent(tiptapJson);
+      setHasChanges(true);
+      setShowHistory(false);
+    },
+    [editor]
+  );
 
   const save = useCallback(async () => {
     if (!editor || saveStatus === "saving") return;
@@ -302,7 +316,15 @@ export function SongEditor({ song }: { song: Song }) {
             {label}
           </Button>
         ))}
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowHistory((v) => !v)}
+            disabled={isGenerating}
+          >
+            Historial
+          </Button>
           <Button
             variant="secondary"
             size="sm"
@@ -332,6 +354,16 @@ export function SongEditor({ song }: { song: Song }) {
           <EditorContent editor={editor} className="song-editor min-h-96" />
         )}
       </div>
+
+      {/* Version history drawer */}
+      {showHistory && (
+        <VersionHistoryPanel
+          songId={song.id}
+          currentVersionId={song.current_version?.id ?? null}
+          onRestore={handleRestore}
+          onClose={() => setShowHistory(false)}
+        />
+      )}
 
       {/* Floating rewrite toolbar — appears when text is selected */}
       {rewriteAnchor && !isGenerating && (
