@@ -49,7 +49,7 @@ export default function LoginPage() {
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold">Iniciar sesión</h1>
           <p className="text-muted-foreground text-sm">
-            Ingresá a tu cuenta de Lyric Copilot
+            Inicia sesión en tu cuenta de Lyric Copilot
           </p>
         </div>
 
@@ -95,7 +95,7 @@ export default function LoginPage() {
         </form>
 
         <p className="text-muted-foreground text-center text-sm">
-          ¿No tenés cuenta?{" "}
+          ¿No tienes cuenta?{" "}
           <Link href="/signup" className="text-foreground underline">
             Registrate
           </Link>

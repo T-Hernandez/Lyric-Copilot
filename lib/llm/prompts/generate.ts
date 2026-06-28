@@ -46,7 +46,7 @@ export function buildGeneratePrompt(input: {
     }
   }
 
-  parts.push("\nEscribí una letra completa basada en estos parámetros.");
+  parts.push("\nEscribe una letra completa basada en estos parámetros.");
 
   return { systemPrompt: SYSTEM_PROMPT, userPrompt: parts.join("\n") };
 }

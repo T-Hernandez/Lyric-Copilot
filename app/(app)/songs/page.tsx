@@ -28,8 +28,8 @@ export default async function SongsPage() {
 
       {!songs?.length ? (
         <div className="text-center py-20 text-muted-foreground">
-          <p className="text-lg mb-2">Todavía no tenés canciones.</p>
-          <p className="text-sm mb-6">Creá una para empezar a escribir.</p>
+          <p className="text-lg mb-2">Todavía no tienes canciones.</p>
+          <p className="text-sm mb-6">Crea una para empezar a escribir.</p>
           <Link href="/songs/new" className={buttonVariants({ variant: "outline" })}>
             Crear mi primera canción
           </Link>

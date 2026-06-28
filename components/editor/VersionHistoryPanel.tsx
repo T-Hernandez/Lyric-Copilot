@@ -150,7 +150,7 @@ export function VersionHistoryPanel({ songId, currentVersionId, onRestore, onClo
         {/* Footer note */}
         <div className="px-4 py-3 border-t shrink-0">
           <p className="text-xs text-muted-foreground">
-            Restaurar carga el contenido en el editor. Guardá para confirmar.
+            Restaurar carga el contenido en el editor. Guarda para confirmar.
           </p>
         </div>
       </div>

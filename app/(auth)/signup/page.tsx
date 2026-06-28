@@ -48,7 +48,7 @@ export default function SignupPage() {
       return;
     }
     setMessage(
-      "Revisá tu email para confirmar la cuenta. Luego podés iniciar sesión."
+      "Revisa tu email para confirmar la cuenta. Luego puedes iniciar sesión."
     );
   }
 
@@ -125,9 +125,9 @@ export default function SignupPage() {
         )}
 
         <p className="text-muted-foreground text-center text-sm">
-          ¿Ya tenés cuenta?{" "}
+          ¿Ya tienes cuenta?{" "}
           <Link href="/login" className="text-foreground underline">
-            Iniciá sesión
+            Inicia sesión
           </Link>
         </p>
       </div>

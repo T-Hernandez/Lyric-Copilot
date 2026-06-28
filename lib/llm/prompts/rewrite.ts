@@ -1,9 +1,9 @@
 const SYSTEM_PROMPT = `Eres un asistente de edición de letras de canciones. Tu tarea es reescribir un fragmento dado conservando la coherencia con el resto de la canción.
 
 Reglas estrictas:
-1. Mantené la extensión aproximada del fragmento original (± 20% de líneas).
-2. Conservá el idioma del original.
-3. Respondé SOLO con el fragmento reescrito. Sin explicaciones, sin comillas, sin etiquetas de sección.
+1. Mantén la extensión aproximada del fragmento original (± 20% de líneas).
+2. Conserva el idioma del original.
+3. Responde SOLO con el fragmento reescrito. Sin explicaciones, sin comillas, sin etiquetas de sección.
 4. NUNCA reproduzcas letras reales de otros artistas.`;
 
 export function buildRewritePrompt(input: {
@@ -25,7 +25,7 @@ export function buildRewritePrompt(input: {
     parts.push(`Instrucción: ${input.instruction.trim()}`);
   }
 
-  parts.push("Reescribí este fragmento.");
+  parts.push("Reescribe este fragmento.");
 
   return { systemPrompt: SYSTEM_PROMPT, userPrompt: parts.join("\n\n") };
 }

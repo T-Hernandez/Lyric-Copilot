@@ -101,7 +101,7 @@ export function SongEditor({ song }: { song: Song }) {
   const editor = useEditor({
     extensions: [
       StarterKit,
-      Placeholder.configure({ placeholder: "Escribí tu letra acá..." }),
+      Placeholder.configure({ placeholder: "Escribe tu letra aquí..." }),
       SongSection,
     ],
     content: (song.current_version?.tiptap_json as object) ?? undefined,
