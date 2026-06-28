@@ -160,6 +160,8 @@ export default function NewSongPage() {
           <StyleReferenceSelector
             selectedIds={styleReferenceIds}
             onChange={setStyleReferenceIds}
+            genre={genre || undefined}
+            mood={mood || undefined}
           />
         </div>
 
