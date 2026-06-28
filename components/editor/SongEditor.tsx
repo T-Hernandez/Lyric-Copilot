@@ -4,7 +4,8 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import { SongSection, SECTION_LABELS, type SectionType } from "./extensions/SongSection";
-import { useState, useCallback, useEffect } from "react";
+import { AiRewriteToolbar } from "./AiRewriteToolbar";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -72,14 +73,26 @@ function textToTiptapJson(text: string) {
   return { type: "doc", content: content.length ? content : [{ type: "paragraph" }] };
 }
 
+type RewriteAnchor = {
+  rect: DOMRect;
+  from: number;
+  to: number;
+  selectedText: string;
+};
+
 export function SongEditor({ song }: { song: Song }) {
   const router = useRouter();
   const [title, setTitle] = useState(song.title);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [hasChanges, setHasChanges] = useState(false);
-  // null = editor visible; string = streaming in progress (shows the accumulated text)
+  // null = editor visible; string = full-song streaming generation in progress
   const [streamingText, setStreamingText] = useState<string | null>(null);
   const [genError, setGenError] = useState<string | null>(null);
+
+  // Inline rewrite toolbar
+  const [rewriteAnchor, setRewriteAnchor] = useState<RewriteAnchor | null>(null);
+  // Keep a ref so onAccept closure always has the latest anchor even after re-renders
+  const rewriteAnchorRef = useRef<RewriteAnchor | null>(null);
 
   const editor = useEditor({
     extensions: [
@@ -89,7 +102,50 @@ export function SongEditor({ song }: { song: Song }) {
     ],
     content: (song.current_version?.tiptap_json as object) ?? undefined,
     onUpdate: () => setHasChanges(true),
+    onSelectionUpdate: ({ editor }) => {
+      if (streamingText !== null) return;
+      const { from, to } = editor.state.selection;
+      if (from === to) {
+        setRewriteAnchor(null);
+        rewriteAnchorRef.current = null;
+        return;
+      }
+      const text = editor.state.doc.textBetween(from, to, "\n").trim();
+      if (!text) {
+        setRewriteAnchor(null);
+        rewriteAnchorRef.current = null;
+        return;
+      }
+      const sel = window.getSelection();
+      if (!sel || sel.rangeCount === 0) return;
+      const rect = sel.getRangeAt(0).getBoundingClientRect();
+      const anchor: RewriteAnchor = { rect, from, to, selectedText: text };
+      rewriteAnchorRef.current = anchor;
+      setRewriteAnchor(anchor);
+    },
   });
+
+  const handleRewriteAccept = useCallback(
+    (suggestion: string) => {
+      const anchor = rewriteAnchorRef.current;
+      if (!editor || !anchor) return;
+      editor
+        .chain()
+        .focus()
+        .setTextSelection({ from: anchor.from, to: anchor.to })
+        .insertContent(suggestion)
+        .run();
+      setRewriteAnchor(null);
+      rewriteAnchorRef.current = null;
+      setHasChanges(true);
+    },
+    [editor]
+  );
+
+  const handleRewriteClose = useCallback(() => {
+    setRewriteAnchor(null);
+    rewriteAnchorRef.current = null;
+  }, []);
 
   const save = useCallback(async () => {
     if (!editor || saveStatus === "saving") return;
@@ -136,6 +192,8 @@ export function SongEditor({ song }: { song: Song }) {
 
     setStreamingText("");
     setGenError(null);
+    setRewriteAnchor(null);
+    rewriteAnchorRef.current = null;
 
     try {
       const res = await fetch(`/api/songs/${song.id}/generate`, { method: "POST" });
@@ -274,6 +332,17 @@ export function SongEditor({ song }: { song: Song }) {
           <EditorContent editor={editor} className="song-editor min-h-96" />
         )}
       </div>
+
+      {/* Floating rewrite toolbar — appears when text is selected */}
+      {rewriteAnchor && !isGenerating && (
+        <AiRewriteToolbar
+          selectionRect={rewriteAnchor.rect}
+          selectedText={rewriteAnchor.selectedText}
+          songId={song.id}
+          onAccept={handleRewriteAccept}
+          onClose={handleRewriteClose}
+        />
+      )}
     </div>
   );
 }
