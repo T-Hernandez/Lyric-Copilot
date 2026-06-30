@@ -6,6 +6,8 @@ import Placeholder from "@tiptap/extension-placeholder";
 import { SongSection, SECTION_LABELS, type SectionType } from "./extensions/SongSection";
 import { AiRewriteToolbar } from "./AiRewriteToolbar";
 import { VersionHistoryPanel } from "./VersionHistoryPanel";
+import { ReviewPanel } from "./ReviewPanel";
+import { textToTiptapJson } from "@/lib/songs/textToTiptapJson";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -28,51 +30,6 @@ type Song = {
   current_version: CurrentVersion | null;
 };
 
-const TAG_MAP: Record<string, SectionType> = {
-  "intro": "intro",
-  "verso": "verse",
-  "verso 1": "verse",
-  "verso 2": "verse",
-  "verso 3": "verse",
-  "verso 4": "verse",
-  "pre-coro": "prechorus",
-  "pre coro": "prechorus",
-  "precoro": "prechorus",
-  "coro": "chorus",
-  "estribillo": "chorus",
-  "puente": "bridge",
-  "bridge": "bridge",
-  "outro": "outro",
-};
-
-function textToTiptapJson(text: string) {
-  const lines = text.split("\n");
-  const content: object[] = [];
-  let hasContent = false;
-
-  for (const line of lines) {
-    const tagMatch = line.match(/^\[([^\]]+)\]/);
-    if (tagMatch) {
-      const key = tagMatch[1].toLowerCase().trim();
-      const sectionType = TAG_MAP[key];
-      if (sectionType) {
-        content.push({ type: "songSection", attrs: { sectionType } });
-        hasContent = true;
-        continue;
-      }
-    }
-    const trimmed = line.trim();
-    if (trimmed || hasContent) {
-      content.push({
-        type: "paragraph",
-        content: trimmed ? [{ type: "text", text: trimmed }] : [],
-      });
-      if (trimmed) hasContent = true;
-    }
-  }
-
-  return { type: "doc", content: content.length ? content : [{ type: "paragraph" }] };
-}
 
 type RewriteAnchor = {
   rect: DOMRect;
@@ -92,6 +49,11 @@ export function SongEditor({ song }: { song: Song }) {
 
   // Version history panel
   const [showHistory, setShowHistory] = useState(false);
+  // Review panel
+  const [showReview, setShowReview] = useState(false);
+  const [currentVersionId, setCurrentVersionId] = useState<string | null>(
+    song.current_version?.id ?? null
+  );
 
   // Inline rewrite toolbar
   const [rewriteAnchor, setRewriteAnchor] = useState<RewriteAnchor | null>(null);
@@ -178,11 +140,15 @@ export function SongEditor({ song }: { song: Song }) {
       const tiptapJson = editor.getJSON();
       const plainText = editor.getText({ blockSeparator: "\n" });
 
-      await fetch(`/api/songs/${song.id}/versions`, {
+      const versionRes = await fetch(`/api/songs/${song.id}/versions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ tiptapJson, plainText, changeSummary: "Guardado manual" }),
       });
+      const versionData = await versionRes.json();
+      if (versionData.created && versionData.versionId) {
+        setCurrentVersionId(versionData.versionId);
+      }
 
       setSaveStatus("saved");
       setHasChanges(false);
@@ -233,7 +199,7 @@ export function SongEditor({ song }: { song: Song }) {
           if (!line.startsWith("data: ")) continue;
           const raw = line.slice(6).trim();
           if (!raw) continue;
-          const event = JSON.parse(raw) as { text?: string; done?: boolean; error?: string };
+          const event = JSON.parse(raw) as { text?: string; done?: boolean; error?: string; versionId?: string };
 
           if (event.error) throw new Error(event.error);
 
@@ -247,6 +213,7 @@ export function SongEditor({ song }: { song: Song }) {
             editor?.commands.setContent(tiptapJson);
             setStreamingText(null);
             setHasChanges(false);
+            if (event.versionId) setCurrentVersionId(event.versionId);
             return;
           }
         }
@@ -326,6 +293,14 @@ export function SongEditor({ song }: { song: Song }) {
             Historial
           </Button>
           <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowReview((v) => !v)}
+            disabled={isGenerating}
+          >
+            Revisar
+          </Button>
+          <Button
             variant="secondary"
             size="sm"
             onClick={generate}
@@ -355,11 +330,21 @@ export function SongEditor({ song }: { song: Song }) {
         )}
       </div>
 
+      {/* Review panel */}
+      {showReview && (
+        <ReviewPanel
+          songId={song.id}
+          lyrics={editor?.getText({ blockSeparator: "\n" }) ?? ""}
+          metadata={{ genre: song.genre, emotionalIntent: song.mood }}
+          onClose={() => setShowReview(false)}
+        />
+      )}
+
       {/* Version history drawer */}
       {showHistory && (
         <VersionHistoryPanel
           songId={song.id}
-          currentVersionId={song.current_version?.id ?? null}
+          currentVersionId={currentVersionId}
           onRestore={handleRestore}
           onClose={() => setShowHistory(false)}
         />

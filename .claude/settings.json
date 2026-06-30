@@ -20,7 +20,20 @@
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/login)",
       "Bash(mkdir -p \"c:/Users/fines/Downloads/Lyric-Copilot/lib/llm/providers\" \"c:/Users/fines/Downloads/Lyric-Copilot/lib/llm/prompts\" \"c:/Users/fines/Downloads/Lyric-Copilot/app/api/songs/[id]/generate\")",
       "Read(//c/Users/fines/.claude/projects/c--Users-fines-Downloads-Lyric-Copilot/memory/**)",
-      "Bash(mkdir -p \"c:/Users/fines/Downloads/Lyric-Copilot/app/api/songs/[id]/rewrite\")"
+      "Bash(mkdir -p \"c:/Users/fines/Downloads/Lyric-Copilot/app/api/songs/[id]/rewrite\")",
+      "Bash(npx next *)",
+      "Bash(npx playwright *)",
+      "Bash(sleep 15 && ls \"C:/Users/fines/AppData/Local/ms-playwright/\" 2>&1 | head -10)",
+      "Read(//c/Users/fines/AppData/Local/ms-playwright/**)",
+      "Bash(node \"C:\\\\Users\\\\fines\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-fines-Downloads-Lyric-Copilot\\\\438c3bcf-4102-442d-8aa8-e3a1aebb6666\\\\scratchpad\\\\verify.mjs\")",
+      "Bash(node verify_temp.mjs)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\({k:v for k,v in d.items\\(\\) if k not in ['access_token','refresh_token']}, indent=2\\)\\)\")",
+      "Bash(node create_test_user.mjs)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3099/login --max-time 5)",
+      "Bash(tasklist)",
+      "Bash(netstat -ano)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://127.0.0.1:3099/login --max-time 8)",
+      "Bash(mkdir -p \"c:\\\\Users\\\\fines\\\\Downloads\\\\Lyric-Copilot\\\\app\\\\api\\\\songs\\\\[id]\\\\review\")"
     ],
     "additionalDirectories": [
       "c:\\Users\\fines\\Downloads\\Lyric-Copilot\\app\\api\\songs\\[id]"

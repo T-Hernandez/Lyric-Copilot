@@ -13,15 +13,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ChipSelector } from "@/components/ChipSelector";
 import { StyleReferenceSelector } from "@/components/StyleReferenceSelector";
 
 const GENRES = [
-  "Pop", "Rock", "Folk", "Reggaeton", "Cumbia",
-  "Balada", "Hip-Hop", "Electrónica", "Jazz", "Otro",
+  // Global
+  "Pop", "Hip-Hop", "R&B", "Rock", "Electrónica", "Indie", "Country", "K-Pop",
+  // Urbano latino
+  "Reggaeton", "Trap Latino", "Corridos Tumbados", "Pop Latino",
+  "Bachata", "Cumbia", "Salsa", "Dembow",
+  // Otros
+  "Trap", "Rock Alternativo", "Rock en Español", "Balada",
+  "Folk", "Jazz", "Flamenco Pop", "Metal",
 ];
+
 const MOODS = [
-  "Alegre", "Triste", "Nostálgico", "Energético",
-  "Romántico", "Melancólico", "Introspectivo", "Otro",
+  "Alegre", "Festivo", "Romántico", "Sensual", "Energético", "Épico",
+  "Melancólico", "Triste", "Nostálgico", "Oscuro", "Furioso",
+  "Introspectivo", "Soñador", "Desafiante", "Tranquilo", "Vulnerable",
 ];
 
 export default function NewSongPage() {
@@ -75,7 +84,7 @@ export default function NewSongPage() {
       </div>
       <h1 className="text-2xl font-bold mb-6">Nueva canción</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-1.5">
           <Label htmlFor="title">Título</Label>
           <Input
@@ -99,44 +108,42 @@ export default function NewSongPage() {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1.5">
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
             <Label>
               Género{" "}
               <span className="text-muted-foreground font-normal">(opcional)</span>
             </Label>
-            <Select value={genre} onValueChange={(val) => setGenre(val ?? "")}>
-              <SelectTrigger>
-                <SelectValue placeholder="Elegir..." />
-              </SelectTrigger>
-              <SelectContent>
-                {GENRES.map((g) => (
-                  <SelectItem key={g} value={g}>
-                    {g}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {genre && (
+              <button
+                type="button"
+                onClick={() => setGenre("")}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                Limpiar
+              </button>
+            )}
           </div>
+          <ChipSelector options={GENRES} value={genre} onChange={setGenre} />
+        </div>
 
-          <div className="space-y-1.5">
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
             <Label>
               Mood{" "}
               <span className="text-muted-foreground font-normal">(opcional)</span>
             </Label>
-            <Select value={mood} onValueChange={(val) => setMood(val ?? "")}>
-              <SelectTrigger>
-                <SelectValue placeholder="Elegir..." />
-              </SelectTrigger>
-              <SelectContent>
-                {MOODS.map((m) => (
-                  <SelectItem key={m} value={m}>
-                    {m}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {mood && (
+              <button
+                type="button"
+                onClick={() => setMood("")}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                Limpiar
+              </button>
+            )}
           </div>
+          <ChipSelector options={MOODS} value={mood} onChange={setMood} />
         </div>
 
         <div className="space-y-1.5">

@@ -2,6 +2,7 @@ import { getSupabaseServer } from "@/lib/supabase/server";
 import { streamCompletion } from "@/lib/llm/router";
 import { buildGeneratePrompt, type StyleTraitEntry } from "@/lib/llm/prompts/generate";
 import { saveNewVersion } from "@/lib/songs/versioning";
+import { textToTiptapJson } from "@/lib/songs/textToTiptapJson";
 
 type Params = Promise<{ id: string }>;
 
@@ -66,14 +67,16 @@ export async function POST(_req: Request, { params }: { params: Params }) {
           controller.enqueue(enc.encode(`data: ${JSON.stringify({ text: chunk })}\n\n`));
         }
 
-        await saveNewVersion({
+        const result = await saveNewVersion({
           songId: id,
           plainText: fullText,
+          tiptapJson: textToTiptapJson(fullText),
           createdBy: user.id,
           changeSummary: "Generación con IA",
         });
 
-        controller.enqueue(enc.encode(`data: ${JSON.stringify({ done: true })}\n\n`));
+        const versionId = result.created ? result.versionId : undefined;
+        controller.enqueue(enc.encode(`data: ${JSON.stringify({ done: true, versionId })}\n\n`));
         controller.close();
       } catch (err) {
         await sb.from("songs").update({ status: "draft" }).eq("id", id);
