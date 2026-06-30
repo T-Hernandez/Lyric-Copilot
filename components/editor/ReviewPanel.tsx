@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import {
   type ReviewLens,
   LENS_LABELS,
   LENS_DESCRIPTIONS,
+  LENS_REWRITE,
 } from "@/lib/llm/prompts/review/shared";
 
 const LENSES: ReviewLens[] = [
@@ -25,9 +27,10 @@ type Props = {
     emotionalIntent?: string | null;
   };
   onClose: () => void;
+  onStartRewrite?: (instruction: string) => void;
 };
 
-export function ReviewPanel({ songId, lyrics, metadata = {}, onClose }: Props) {
+export function ReviewPanel({ songId, lyrics, metadata = {}, onClose, onStartRewrite }: Props) {
   const [selectedLens, setSelectedLens] = useState<ReviewLens | null>(null);
   const [streamedText, setStreamedText] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
@@ -175,8 +178,8 @@ export function ReviewPanel({ songId, lyrics, metadata = {}, onClose }: Props) {
               {error ? (
                 <p className="text-sm text-destructive">{error}</p>
               ) : (
-                <div className="text-sm leading-relaxed whitespace-pre-wrap text-foreground">
-                  {streamedText}
+                <div className="text-sm leading-relaxed text-foreground prose prose-sm max-w-none prose-p:my-2 prose-strong:font-semibold prose-p:leading-relaxed">
+                  <ReactMarkdown>{streamedText}</ReactMarkdown>
                   {isStreaming && (
                     <span className="inline-block w-0.5 h-3.5 bg-foreground/60 ml-px align-middle animate-pulse" />
                   )}
@@ -187,8 +190,20 @@ export function ReviewPanel({ songId, lyrics, metadata = {}, onClose }: Props) {
         </div>
 
         {/* Footer */}
-        {isDone && (
-          <div className="px-4 py-3 border-t shrink-0">
+        {isDone && selectedLens && (
+          <div className="px-4 py-3 border-t shrink-0 space-y-2">
+            {onStartRewrite && (
+              <Button
+                size="sm"
+                className="w-full"
+                onClick={() => {
+                  onStartRewrite(LENS_REWRITE[selectedLens].instruction);
+                  onClose();
+                }}
+              >
+                {LENS_REWRITE[selectedLens].label}
+              </Button>
+            )}
             <Button
               size="sm"
               variant="outline"

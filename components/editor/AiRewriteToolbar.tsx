@@ -10,15 +10,14 @@ type Props = {
   selectionRect: DOMRect;
   selectedText: string;
   songId: string;
-  // Called when the user accepts the suggestion
+  defaultInstruction?: string;
   onAccept: (suggestion: string) => void;
-  // Called when the user dismisses the toolbar
   onClose: () => void;
 };
 
-export function AiRewriteToolbar({ selectionRect, selectedText, songId, onAccept, onClose }: Props) {
-  const [phase, setPhase] = useState<Phase>("trigger");
-  const [instruction, setInstruction] = useState("");
+export function AiRewriteToolbar({ selectionRect, selectedText, songId, defaultInstruction, onAccept, onClose }: Props) {
+  const [phase, setPhase] = useState<Phase>(defaultInstruction ? "panel" : "trigger");
+  const [instruction, setInstruction] = useState(defaultInstruction ?? "");
   const [streaming, setStreaming] = useState(false);
   const [suggestion, setSuggestion] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);

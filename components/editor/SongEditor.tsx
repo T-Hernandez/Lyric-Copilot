@@ -51,6 +51,7 @@ export function SongEditor({ song }: { song: Song }) {
   const [showHistory, setShowHistory] = useState(false);
   // Review panel
   const [showReview, setShowReview] = useState(false);
+  const [rewriteInstruction, setRewriteInstruction] = useState<string | null>(null);
   const [currentVersionId, setCurrentVersionId] = useState<string | null>(
     song.current_version?.id ?? null
   );
@@ -103,6 +104,7 @@ export function SongEditor({ song }: { song: Song }) {
         .run();
       setRewriteAnchor(null);
       rewriteAnchorRef.current = null;
+      setRewriteInstruction(null);
       setHasChanges(true);
     },
     [editor]
@@ -111,7 +113,28 @@ export function SongEditor({ song }: { song: Song }) {
   const handleRewriteClose = useCallback(() => {
     setRewriteAnchor(null);
     rewriteAnchorRef.current = null;
+    setRewriteInstruction(null);
   }, []);
+
+  const handleStartRewriteFromReview = useCallback((instruction: string) => {
+    if (!editor) return;
+    editor.commands.selectAll();
+    const { from, to } = editor.state.selection;
+    const selectedText = editor.state.doc.textBetween(from, to, "\n").trim();
+    if (!selectedText) return;
+    const editorEl = document.querySelector(".ProseMirror");
+    const editorRect = editorEl?.getBoundingClientRect();
+    const rect = new DOMRect(
+      window.innerWidth / 2 - 100,
+      editorRect ? editorRect.top + 60 : 200,
+      200,
+      20
+    );
+    const anchor: RewriteAnchor = { rect, from, to, selectedText };
+    rewriteAnchorRef.current = anchor;
+    setRewriteAnchor(anchor);
+    setRewriteInstruction(instruction);
+  }, [editor]);
 
   const handleRestore = useCallback(
     (tiptapJson: object) => {
@@ -337,6 +360,7 @@ export function SongEditor({ song }: { song: Song }) {
           lyrics={editor?.getText({ blockSeparator: "\n" }) ?? ""}
           metadata={{ genre: song.genre, emotionalIntent: song.mood }}
           onClose={() => setShowReview(false)}
+          onStartRewrite={handleStartRewriteFromReview}
         />
       )}
 
@@ -356,6 +380,7 @@ export function SongEditor({ song }: { song: Song }) {
           selectionRect={rewriteAnchor.rect}
           selectedText={rewriteAnchor.selectedText}
           songId={song.id}
+          defaultInstruction={rewriteInstruction ?? undefined}
           onAccept={handleRewriteAccept}
           onClose={handleRewriteClose}
         />
