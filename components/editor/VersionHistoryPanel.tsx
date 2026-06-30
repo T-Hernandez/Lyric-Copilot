@@ -13,7 +13,9 @@ type VersionMeta = {
 type Props = {
   songId: string;
   currentVersionId: string | null;
+  currentLyrics: string;
   onRestore: (tiptapJson: object) => void;
+  onCompare: (plainText: string, label: string) => void;
   onClose: () => void;
 };
 
@@ -29,10 +31,11 @@ function relativeTime(dateStr: string): string {
   return `hace ${days} día${days > 1 ? "s" : ""}`;
 }
 
-export function VersionHistoryPanel({ songId, currentVersionId, onRestore, onClose }: Props) {
+export function VersionHistoryPanel({ songId, currentVersionId, currentLyrics, onRestore, onCompare, onClose }: Props) {
   const [versions, setVersions] = useState<VersionMeta[]>([]);
   const [loading, setLoading] = useState(true);
   const [restoringId, setRestoringId] = useState<string | null>(null);
+  const [comparingId, setComparingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -51,6 +54,20 @@ export function VersionHistoryPanel({ songId, currentVersionId, onRestore, onClo
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
   }, [onClose]);
+
+  async function handleCompare(versionId: string, versionNumber: number) {
+    setComparingId(versionId);
+    try {
+      const res = await fetch(`/api/songs/${songId}/versions/${versionId}`);
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      onCompare(data.plain_text as string, `v${versionNumber}`);
+    } catch {
+      setError("No se pudo cargar la versión");
+    } finally {
+      setComparingId(null);
+    }
+  }
 
   async function handleRestore(versionId: string) {
     setRestoringId(versionId);
@@ -132,15 +149,26 @@ export function VersionHistoryPanel({ songId, currentVersionId, onRestore, onClo
                   {relativeTime(v.created_at)}
                 </p>
                 {!isCurrent && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-6 text-xs px-2"
-                    disabled={restoringId !== null}
-                    onClick={() => handleRestore(v.id)}
-                  >
-                    {isRestoring ? "Restaurando..." : "Restaurar"}
-                  </Button>
+                  <div className="flex gap-1.5">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-6 text-xs px-2"
+                      disabled={restoringId !== null || comparingId !== null}
+                      onClick={() => handleCompare(v.id, v.version_number)}
+                    >
+                      {comparingId === v.id ? "..." : "Comparar"}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-6 text-xs px-2"
+                      disabled={restoringId !== null || comparingId !== null}
+                      onClick={() => handleRestore(v.id)}
+                    >
+                      {isRestoring ? "Restaurando..." : "Restaurar"}
+                    </Button>
+                  </div>
                 )}
               </div>
             );
@@ -150,7 +178,7 @@ export function VersionHistoryPanel({ songId, currentVersionId, onRestore, onClo
         {/* Footer note */}
         <div className="px-4 py-3 border-t shrink-0">
           <p className="text-xs text-muted-foreground">
-            Restaurar carga el contenido en el editor. Guarda para confirmar.
+            Restaurar no guarda automáticamente.
           </p>
         </div>
       </div>

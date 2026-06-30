@@ -20,18 +20,21 @@ export default async function SongsPage() {
   return (
     <main className="max-w-3xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold">Mis canciones</h1>
+        <div>
+          <h1 className="text-2xl font-bold">Mis canciones</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Escribe, reescribe, revisa.</p>
+        </div>
         <Link href="/songs/new" className={buttonVariants()}>
-          + Nueva canción
+          Nueva canción
         </Link>
       </div>
 
       {!songs?.length ? (
         <div className="text-center py-20 text-muted-foreground">
-          <p className="text-lg mb-2">Todavía no tienes canciones.</p>
-          <p className="text-sm mb-6">Crea una para empezar a escribir.</p>
+          <p className="text-lg mb-2">Ninguna canción todavía.</p>
+          <p className="text-sm mb-6">Empieza con algo pequeño: un título, una emoción, una idea.</p>
           <Link href="/songs/new" className={buttonVariants({ variant: "outline" })}>
-            Crear mi primera canción
+            Empezar a escribir
           </Link>
         </div>
       ) : (

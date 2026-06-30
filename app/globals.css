@@ -49,23 +49,23 @@
 
 :root {
     --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
+    --foreground: oklch(0.14 0.015 60);
     --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
+    --card-foreground: oklch(0.14 0.015 60);
     --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
+    --popover-foreground: oklch(0.14 0.015 60);
+    --primary: oklch(0.22 0.03 60);
     --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
+    --secondary: oklch(0.97 0.005 60);
+    --secondary-foreground: oklch(0.22 0.03 60);
+    --muted: oklch(0.97 0.005 60);
+    --muted-foreground: oklch(0.52 0.015 60);
+    --accent: oklch(0.97 0.005 60);
+    --accent-foreground: oklch(0.22 0.03 60);
     --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
+    --border: oklch(0.918 0.006 60);
+    --input: oklch(0.918 0.006 60);
+    --ring: oklch(0.65 0.02 60);
     --chart-1: oklch(0.87 0 0);
     --chart-2: oklch(0.556 0 0);
     --chart-3: oklch(0.439 0 0);
@@ -131,13 +131,14 @@
 /* ── TipTap editor ─────────────────────────────────────────── */
 .song-editor .tiptap {
   outline: none;
-  font-size: 1rem;
-  line-height: 1.8;
+  font-size: 1.05rem;
+  line-height: 2;
   min-height: 24rem;
+  letter-spacing: 0.01em;
 }
 
 .song-editor .tiptap p {
-  margin: 0.2rem 0;
+  margin: 0.15rem 0;
 }
 
 .song-editor .tiptap p.is-editor-empty:first-child::before {

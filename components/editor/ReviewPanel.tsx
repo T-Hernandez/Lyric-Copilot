@@ -156,7 +156,7 @@ export function ReviewPanel({ songId, lyrics, metadata = {}, onClose, onStartRew
             /* Lens chooser */
             <div className="p-4 space-y-2">
               <p className="text-xs text-muted-foreground mb-4">
-                ¿Qué quieres revisar hoy?
+                ¿Qué necesita esta letra?
               </p>
               {LENSES.map((lens) => (
                 <button

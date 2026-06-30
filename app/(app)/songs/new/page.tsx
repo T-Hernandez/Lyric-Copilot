@@ -82,9 +82,12 @@ export default function NewSongPage() {
           ← Volver
         </Button>
       </div>
-      <h1 className="text-2xl font-bold mb-6">Nueva canción</h1>
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold">Nueva canción</h1>
+        <p className="text-sm text-muted-foreground mt-1">Cuanto más contexto, mejor la letra generada.</p>
+      </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-7">
         <div className="space-y-1.5">
           <Label htmlFor="title">Título</Label>
           <Input

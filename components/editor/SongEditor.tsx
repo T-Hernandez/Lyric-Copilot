@@ -6,6 +6,7 @@ import Placeholder from "@tiptap/extension-placeholder";
 import { SongSection, SECTION_LABELS, type SectionType } from "./extensions/SongSection";
 import { AiRewriteToolbar } from "./AiRewriteToolbar";
 import { VersionHistoryPanel } from "./VersionHistoryPanel";
+import { VersionDiffPanel } from "./VersionDiffPanel";
 import { ReviewPanel } from "./ReviewPanel";
 import { textToTiptapJson } from "@/lib/songs/textToTiptapJson";
 import { useState, useCallback, useEffect, useRef } from "react";
@@ -52,6 +53,8 @@ export function SongEditor({ song }: { song: Song }) {
   // Review panel
   const [showReview, setShowReview] = useState(false);
   const [rewriteInstruction, setRewriteInstruction] = useState<string | null>(null);
+  // Diff panel
+  const [compareTarget, setCompareTarget] = useState<{ text: string; label: string } | null>(null);
   const [currentVersionId, setCurrentVersionId] = useState<string | null>(
     song.current_version?.id ?? null
   );
@@ -64,7 +67,7 @@ export function SongEditor({ song }: { song: Song }) {
   const editor = useEditor({
     extensions: [
       StarterKit,
-      Placeholder.configure({ placeholder: "Escribe tu letra aquí..." }),
+      Placeholder.configure({ placeholder: "Primera línea." }),
       SongSection,
     ],
     content: (song.current_version?.tiptap_json as object) ?? undefined,
@@ -274,16 +277,16 @@ export function SongEditor({ song }: { song: Song }) {
             setTitle(e.target.value);
             setHasChanges(true);
           }}
-          className="text-base font-semibold border-0 shadow-none focus-visible:ring-0 px-0 h-auto flex-1"
+          className="text-lg font-semibold border-0 shadow-none focus-visible:ring-0 px-0 h-auto flex-1 tracking-tight"
           placeholder="Sin título"
           disabled={isGenerating}
         />
         <div className="flex items-center gap-3 shrink-0">
           <span className="text-xs text-muted-foreground min-w-[80px] text-right">
             {saveStatus === "saving" && "Guardando..."}
-            {saveStatus === "saved" && "Guardado ✓"}
-            {saveStatus === "error" && "Error al guardar"}
-            {saveStatus === "idle" && hasChanges && "Sin guardar"}
+            {saveStatus === "saved" && "Guardado"}
+            {saveStatus === "error" && "No se pudo guardar"}
+            {saveStatus === "idle" && hasChanges && "Cambios sin guardar"}
           </span>
           <Button onClick={save} disabled={saveStatus === "saving" || isGenerating} size="sm">
             Guardar
@@ -369,8 +372,19 @@ export function SongEditor({ song }: { song: Song }) {
         <VersionHistoryPanel
           songId={song.id}
           currentVersionId={currentVersionId}
+          currentLyrics={editor?.getText({ blockSeparator: "\n" }) ?? ""}
           onRestore={handleRestore}
+          onCompare={(text, label) => setCompareTarget({ text, label })}
           onClose={() => setShowHistory(false)}
+        />
+      )}
+
+      {compareTarget && (
+        <VersionDiffPanel
+          songId={song.id}
+          older={compareTarget}
+          newer={{ text: editor?.getText({ blockSeparator: "\n" }) ?? "", label: "Versión actual" }}
+          onClose={() => setCompareTarget(null)}
         />
       )}
 
