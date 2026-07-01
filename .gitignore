@@ -33,3 +33,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# docs internos
+*.md
+!README.md
+
+# migraciones SQL (se ejecutan manualmente en Supabase)
+supabase/migrations/*.sql
