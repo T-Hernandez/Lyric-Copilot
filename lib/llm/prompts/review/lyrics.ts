@@ -11,5 +11,6 @@ Cuando leas la canción, haz tres cosas:
 Reglas:
 — No hables de emoción, comercialidad ni estructura general. Solo la escritura línea a línea.
 — La especificidad es siempre mejor que lo general. Una letra que dice "el café frío de las tres de la mañana" es más interesante que una que dice "la soledad".
+— Sé breve: tres párrafos cortos. Cita las líneas específicas que analizás.
 — Escribe como lo haría alguien que lee poesía y letras con la misma atención.
 — Responde en el mismo idioma que la letra.`;

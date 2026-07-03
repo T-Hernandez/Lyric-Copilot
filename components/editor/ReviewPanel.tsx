@@ -10,6 +10,13 @@ import {
   LENS_REWRITE,
 } from "@/lib/llm/prompts/review/shared";
 
+type ReviewHistoryItem = {
+  id: string;
+  lens: ReviewLens;
+  content: string;
+  created_at: string;
+};
+
 const LENSES: ReviewLens[] = [
   "emotional",
   "storytelling",
@@ -18,6 +25,18 @@ const LENSES: ReviewLens[] = [
   "commercial",
   "full",
 ];
+
+function relativeTime(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const secs = Math.floor(diff / 1000);
+  if (secs < 60) return "hace un momento";
+  const mins = Math.floor(secs / 60);
+  if (mins < 60) return `hace ${mins} min`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `hace ${hours} h`;
+  const days = Math.floor(hours / 24);
+  return `hace ${days} día${days > 1 ? "s" : ""}`;
+}
 
 type Props = {
   songId: string;
@@ -36,6 +55,21 @@ export function ReviewPanel({ songId, lyrics, metadata = {}, onClose, onStartRew
   const [isStreaming, setIsStreaming] = useState(false);
   const [isDone, setIsDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [history, setHistory] = useState<ReviewHistoryItem[]>([]);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  // Load history on mount
+  useEffect(() => {
+    fetch(`/api/songs/${songId}/reviews`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) setHistory(data);
+      })
+      .catch(() => {})
+      .finally(() => setHistoryLoaded(true));
+  }, [songId]);
 
   // Close on Escape
   useEffect(() => {
@@ -76,6 +110,7 @@ export function ReviewPanel({ songId, lyrics, metadata = {}, onClose, onStartRew
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
         let buffer = "";
+        let accumulated = "";
 
         while (true) {
           const { done, value } = await reader.read();
@@ -96,10 +131,18 @@ export function ReviewPanel({ songId, lyrics, metadata = {}, onClose, onStartRew
             };
 
             if (event.error) throw new Error(event.error);
-            if (event.text) setStreamedText((prev) => prev + event.text);
+            if (event.text) {
+              accumulated += event.text;
+              setStreamedText((prev) => prev + event.text);
+            }
             if (event.done) {
               setIsDone(true);
               setIsStreaming(false);
+              // Add to local history without re-fetching
+              setHistory((prev) => [
+                { id: crypto.randomUUID(), lens, content: accumulated, created_at: new Date().toISOString() },
+                ...prev,
+              ]);
               return;
             }
           }
@@ -111,6 +154,14 @@ export function ReviewPanel({ songId, lyrics, metadata = {}, onClose, onStartRew
     },
     [songId, lyrics, metadata]
   );
+
+  const goBack = useCallback(() => {
+    setSelectedLens(null);
+    setStreamedText("");
+    setIsDone(false);
+    setError(null);
+    setExpandedId(null);
+  }, []);
 
   return (
     <>
@@ -125,12 +176,7 @@ export function ReviewPanel({ songId, lyrics, metadata = {}, onClose, onStartRew
             {selectedLens && (
               <button
                 type="button"
-                onClick={() => {
-                  setSelectedLens(null);
-                  setStreamedText("");
-                  setIsDone(false);
-                  setError(null);
-                }}
+                onClick={goBack}
                 className="text-muted-foreground hover:text-foreground text-sm"
                 disabled={isStreaming}
               >
@@ -153,7 +199,6 @@ export function ReviewPanel({ songId, lyrics, metadata = {}, onClose, onStartRew
         {/* Content */}
         <div className="flex-1 overflow-y-auto">
           {!selectedLens ? (
-            /* Lens chooser */
             <div className="p-4 space-y-2">
               <p className="text-xs text-muted-foreground mb-4">
                 ¿Qué necesita esta letra?
@@ -171,6 +216,53 @@ export function ReviewPanel({ songId, lyrics, metadata = {}, onClose, onStartRew
                   </p>
                 </button>
               ))}
+
+              {/* History */}
+              {historyLoaded && history.length > 0 && (
+                <div className="pt-4 mt-2 border-t">
+                  <p className="text-xs text-muted-foreground mb-3">Análisis anteriores</p>
+                  <div className="space-y-2">
+                    {history.map((item) => (
+                      <div key={item.id} className="rounded-lg border overflow-hidden">
+                        <button
+                          type="button"
+                          onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
+                          className="w-full text-left px-3 py-2.5 hover:bg-muted/40 transition-colors flex items-center justify-between"
+                        >
+                          <div>
+                            <p className="text-xs font-medium">{LENS_LABELS[item.lens]}</p>
+                            <p className="text-[11px] text-muted-foreground/70 mt-0.5">
+                              {relativeTime(item.created_at)}
+                            </p>
+                          </div>
+                          <span className="text-muted-foreground text-xs">
+                            {expandedId === item.id ? "▲" : "▼"}
+                          </span>
+                        </button>
+                        {expandedId === item.id && (
+                          <div className="px-3 pb-3 pt-1 border-t bg-muted/20">
+                            <div className="text-xs leading-relaxed text-foreground/80 prose prose-sm max-w-none prose-p:my-1.5 prose-strong:font-semibold prose-p:leading-relaxed">
+                              <ReactMarkdown>{item.content}</ReactMarkdown>
+                            </div>
+                            {onStartRewrite && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  onStartRewrite(LENS_REWRITE[item.lens].instruction);
+                                  onClose();
+                                }}
+                                className="mt-2 text-xs text-primary hover:underline"
+                              >
+                                {LENS_REWRITE[item.lens].label}
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             /* Streaming response */
@@ -208,11 +300,7 @@ export function ReviewPanel({ songId, lyrics, metadata = {}, onClose, onStartRew
               size="sm"
               variant="outline"
               className="w-full"
-              onClick={() => {
-                setSelectedLens(null);
-                setStreamedText("");
-                setIsDone(false);
-              }}
+              onClick={goBack}
             >
               Ver otras perspectivas
             </Button>

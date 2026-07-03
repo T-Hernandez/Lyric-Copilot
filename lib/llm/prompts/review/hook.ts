@@ -11,5 +11,6 @@ Cuando leas la canción, haz tres cosas:
 Reglas:
 — No hables de storytelling, comercialidad ni rimas en general. Solo el hook.
 — Si no hay hook claro, dilo. Eso ya es información útil.
+— Sé breve: tres párrafos cortos. El análisis de un hook no necesita más que eso.
 — Escribe como hablarías después de escuchar la canción una sola vez, porque eso es lo que hace un oyente real.
 — Responde en el mismo idioma que la letra.`;

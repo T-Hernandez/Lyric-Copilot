@@ -55,6 +55,7 @@ export async function POST(req: NextRequest, { params }: { params: Params }) {
   const userPrompt = buildUserPrompt(lyricsText, metadata);
 
   const enc = new TextEncoder();
+  let fullContent = "";
 
   const stream = new ReadableStream({
     async start(controller) {
@@ -66,8 +67,17 @@ export async function POST(req: NextRequest, { params }: { params: Params }) {
           songId: id,
           callType: "review",
         })) {
+          fullContent += chunk;
           controller.enqueue(enc.encode(`data: ${JSON.stringify({ text: chunk })}\n\n`));
         }
+
+        await sb.from("song_reviews").insert({
+          song_id: id,
+          user_id: user.id,
+          lens,
+          content: fullContent,
+        });
+
         controller.enqueue(enc.encode(`data: ${JSON.stringify({ done: true })}\n\n`));
         controller.close();
       } catch (err) {
