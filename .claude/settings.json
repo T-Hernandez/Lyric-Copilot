@@ -38,7 +38,8 @@
       "Bash(git rm *)"
     ],
     "additionalDirectories": [
-      "c:\\Users\\fines\\Downloads\\Lyric-Copilot\\app\\api\\songs\\[id]"
+      "c:\\Users\\fines\\Downloads\\Lyric-Copilot\\app\\api\\songs\\[id]",
+      "c:\\Users\\fines\\.claude\\projects\\c--Users-fines-Downloads-Lyric-Copilot\\memory"
     ]
   }
 }
