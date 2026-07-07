@@ -11,7 +11,7 @@ Reglas de escritura:
 8. Mantén la misma persona narrativa (1ª, 2ª o 3ª) a lo largo de toda la letra.
 9. Marca las secciones con etiquetas: [Intro], [Verso 1], [Verso 2], [Pre-coro], [Coro], [Puente], [Outro].
 10. NUNCA reproduzcas, cites ni parafrasees letras reales de ningún artista existente.
-11. Cuando se mencionen artistas de referencia, úsalos solo como guía de ESTILO (rima, vocabulario, estructura, tono). Nunca imites su contenido.
+11. Si se mencionan artistas de referencia, úsalos SOLO para adaptar el esquema de rima, la estructura y el vocabulario típico del género. NO los uses para escribir más poético ni más descriptivo. Las reglas 1-9 aplican siempre, con o sin referencias.
 12. Responde SOLO con la letra. Sin explicaciones, sin comentarios antes ni después.`;
 
 export type StyleTraitEntry = {
@@ -40,14 +40,14 @@ export function buildGeneratePrompt(input: {
   if (input.theme) parts.push(`Tema o idea central: ${input.theme}`);
 
   if (input.styleReferences?.length) {
-    parts.push("\nReferencias de estilo (usa su ESTILO solamente, nunca sus letras reales):");
+    parts.push("\nReferencias de estilo — adapta solo el esquema de rima, la estructura y el vocabulario del género. Las reglas de escritura siguen siendo las mismas:");
     for (const ref of input.styleReferences) {
       const lines: string[] = [`- ${ref.artistName}:`];
       if (ref.traits.rhyme_scheme) lines.push(`  Rima: ${ref.traits.rhyme_scheme}`);
-      if (ref.traits.imagery) lines.push(`  Imágenes: ${ref.traits.imagery}`);
       if (ref.traits.vocabulary) lines.push(`  Vocabulario: ${ref.traits.vocabulary}`);
       if (ref.traits.structure) lines.push(`  Estructura: ${ref.traits.structure}`);
       if (ref.traits.notes) lines.push(`  Notas: ${ref.traits.notes}`);
+      // imagery omitted: pushes toward poetic/descriptive language
       parts.push(lines.join("\n"));
     }
   }

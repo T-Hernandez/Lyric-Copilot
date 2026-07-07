@@ -143,7 +143,7 @@ export function StyleReferenceSelector({
       ))}
       {atLimit && (
         <p className="text-xs text-muted-foreground">
-          Máximo {maxSelections} referencias seleccionadas.
+          Máximo {maxSelections} inspiraciones seleccionadas.
         </p>
       )}
     </div>

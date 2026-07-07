@@ -164,9 +164,12 @@ export default function NewSongPage() {
 
         <div className="space-y-1.5">
           <Label>
-            Referencias de estilo{" "}
-            <span className="text-muted-foreground font-normal">(opcional, máx. 3)</span>
+            Inspiraciones{" "}
+            <span className="text-muted-foreground font-normal">(opcional)</span>
           </Label>
+          <p className="text-xs text-muted-foreground -mt-0.5">
+            Añade el toque de artistas que te gusten. Influyen en el estilo, no en la idea de tu canción.
+          </p>
           <StyleReferenceSelector
             selectedIds={styleReferenceIds}
             onChange={setStyleReferenceIds}
