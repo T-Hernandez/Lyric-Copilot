@@ -52,6 +52,7 @@ export function SongEditor({ song }: { song: Song }) {
   const [showHistory, setShowHistory] = useState(false);
   // Review panel
   const [showReview, setShowReview] = useState(false);
+  const [showReviewNudge, setShowReviewNudge] = useState(false);
   const [rewriteInstruction, setRewriteInstruction] = useState<string | null>(null);
   // Diff panel
   const [compareTarget, setCompareTarget] = useState<{ text: string; label: string } | null>(null);
@@ -71,7 +72,10 @@ export function SongEditor({ song }: { song: Song }) {
       SongSection,
     ],
     content: (song.current_version?.tiptap_json as object) ?? undefined,
-    onUpdate: () => setHasChanges(true),
+    onUpdate: () => {
+      setHasChanges(true);
+      setShowReviewNudge(false);
+    },
     onSelectionUpdate: ({ editor }) => {
       if (streamingText !== null) return;
       const { from, to } = editor.state.selection;
@@ -239,6 +243,7 @@ export function SongEditor({ song }: { song: Song }) {
             editor?.commands.setContent(tiptapJson);
             setStreamingText(null);
             setHasChanges(false);
+            setShowReviewNudge(true);
             if (event.versionId) setCurrentVersionId(event.versionId);
             return;
           }
@@ -309,7 +314,8 @@ export function SongEditor({ song }: { song: Song }) {
             {label}
           </Button>
         ))}
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto h-4 w-px bg-border self-center" />
+        <div className="flex items-center gap-2">
           <Button
             variant="ghost"
             size="sm"
@@ -321,10 +327,13 @@ export function SongEditor({ song }: { song: Song }) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setShowReview((v) => !v)}
+            onClick={() => {
+              setShowReview((v) => !v);
+              setShowReviewNudge(false);
+            }}
             disabled={isGenerating}
           >
-            Revisar
+            Pedir feedback
           </Button>
           <Button
             variant="secondary"
@@ -355,6 +364,39 @@ export function SongEditor({ song }: { song: Song }) {
           <EditorContent editor={editor} className="song-editor min-h-96" />
         )}
       </div>
+
+      {/* Post-generation nudge */}
+      {showReviewNudge && !isGenerating && (
+        <div className="max-w-2xl mx-auto w-full px-6 pb-4">
+          <div className="rounded-lg border bg-muted/40 px-4 py-3 flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-medium">Borrador listo.</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Los buenos compositores rara vez quedan conformes con la primera versión. Pide feedback antes de reescribir.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                size="sm"
+                onClick={() => {
+                  setShowReview(true);
+                  setShowReviewNudge(false);
+                }}
+              >
+                Pedir feedback
+              </Button>
+              <button
+                type="button"
+                onClick={() => setShowReviewNudge(false)}
+                className="text-muted-foreground hover:text-foreground text-sm leading-none px-1"
+                aria-label="Cerrar"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Review panel */}
       {showReview && (
