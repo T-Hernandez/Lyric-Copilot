@@ -4,6 +4,7 @@ import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { LogoutButton } from "@/components/LogoutButton";
 
 export default async function SongsPage() {
   const sb = await getSupabaseServer();
@@ -24,9 +25,12 @@ export default async function SongsPage() {
           <h1 className="text-2xl font-bold">Mis canciones</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Escribe, reescribe, revisa.</p>
         </div>
-        <Link href="/songs/new" className={buttonVariants()}>
-          Nueva canción
-        </Link>
+        <div className="flex items-center gap-4">
+          <LogoutButton />
+          <Link href="/songs/new" className={buttonVariants()}>
+            Nueva canción
+          </Link>
+        </div>
       </div>
 
       {!songs?.length ? (
