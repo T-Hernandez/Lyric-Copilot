@@ -2,6 +2,7 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 const PUBLIC_PATHS = ["/login", "/signup"];
+const PUBLIC_EXACT = ["/"];
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -32,9 +33,9 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isPublic = PUBLIC_PATHS.some((p) =>
-    request.nextUrl.pathname.startsWith(p)
-  );
+  const isPublic =
+    PUBLIC_EXACT.includes(request.nextUrl.pathname) ||
+    PUBLIC_PATHS.some((p) => request.nextUrl.pathname.startsWith(p));
 
   if (!user && !isPublic) {
     if (request.nextUrl.pathname.startsWith("/api/")) {
