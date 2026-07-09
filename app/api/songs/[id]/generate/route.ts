@@ -67,10 +67,18 @@ export async function POST(_req: Request, { params }: { params: Params }) {
           controller.enqueue(enc.encode(`data: ${JSON.stringify({ text: chunk })}\n\n`));
         }
 
+        const tiptapJson = textToTiptapJson(fullText);
+        // Strip section label lines so plain_text matches what editor.getText() produces
+        const plainText = fullText
+          .split('\n')
+          .filter(line => !line.trim().match(/^\[[^\]]+\]$/))
+          .join('\n')
+          .trim();
+
         const result = await saveNewVersion({
           songId: id,
-          plainText: fullText,
-          tiptapJson: textToTiptapJson(fullText),
+          plainText,
+          tiptapJson,
           createdBy: user.id,
           changeSummary: "Generación con IA",
         });

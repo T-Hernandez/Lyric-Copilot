@@ -39,12 +39,16 @@ export default function SignupPage() {
     setError(null);
     setMessage(null);
     const supabase = getSupabaseBrowser();
-    const { error } = await supabase.auth.signUp({
+    const { data: authData, error } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
     });
     if (error) {
       setError(error.message);
+      return;
+    }
+    if (authData.session) {
+      router.push("/songs");
       return;
     }
     setMessage(
