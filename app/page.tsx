@@ -1,10 +1,10 @@
 import Link from "next/link";
 
 const STEPS = [
-  { n: "01", title: "Escribe", desc: "Empieza desde una idea o genera un borrador con IA." },
-  { n: "02", title: "Pide feedback", desc: "Recibe análisis específico sobre tu letra: hook, emoción, cohesión." },
-  { n: "03", title: "Reescribe", desc: "Cambia lo que no funciona, línea por línea, manteniendo tu voz." },
-  { n: "04", title: "Compara", desc: "Mira cómo evolucionó tu canción versión por versión." },
+  { n: "01", icon: "✍️", title: "Escribe", desc: "Empieza desde una idea o genera un borrador con IA." },
+  { n: "02", icon: "🎧", title: "Pide feedback", desc: "Recibe análisis específico sobre tu letra: hook, emoción, cohesión." },
+  { n: "03", icon: "✨", title: "Reescribe", desc: "Cambia lo que no funciona, línea por línea, manteniendo tu voz." },
+  { n: "04", icon: "📈", title: "Compara", desc: "Mira cómo evolucionó tu canción versión por versión." },
 ];
 
 const COMPARISON = [
@@ -37,7 +37,7 @@ export default function LandingPage() {
 
       <main className="flex-1 flex flex-col">
         {/* Hero */}
-        <section className="flex flex-col items-center justify-center text-center px-4 py-24 max-w-3xl mx-auto w-full">
+        <section className="flex flex-col items-center justify-center text-center px-4 py-16 max-w-3xl mx-auto w-full">
           <h1 className="text-4xl sm:text-5xl font-bold tracking-tight leading-tight mb-6">
             No reemplaces tu creatividad.
             <br />
@@ -87,9 +87,9 @@ export default function LandingPage() {
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {STEPS.map(({ n, title, desc }) => (
+            {STEPS.map(({ n, icon, title, desc }) => (
               <div key={n} className="space-y-2">
-                <span className="text-xs font-mono text-muted-foreground/50">{n}</span>
+                <span className="text-2xl">{icon}</span>
                 <h3 className="font-medium">{title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
               </div>
