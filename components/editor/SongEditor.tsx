@@ -8,6 +8,8 @@ import { AiRewriteToolbar } from "./AiRewriteToolbar";
 import { VersionHistoryPanel } from "./VersionHistoryPanel";
 import { VersionDiffPanel } from "./VersionDiffPanel";
 import { ReviewPanel } from "./ReviewPanel";
+import { OnboardingChecklist } from "./OnboardingChecklist";
+import { useOnboarding } from "@/hooks/useOnboarding";
 import { textToTiptapJson } from "@/lib/songs/textToTiptapJson";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -65,6 +67,16 @@ export function SongEditor({ song }: { song: Song }) {
   // Keep a ref so onAccept closure always has the latest anchor even after re-renders
   const rewriteAnchorRef = useRef<RewriteAnchor | null>(null);
 
+  const { completed, dismissed, allDone, complete, dismiss } = useOnboarding();
+
+  // Auto-complete "write" if the song already has content (returning user)
+  useEffect(() => {
+    if (song.current_version?.plain_text?.trim()) {
+      complete("write");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -113,8 +125,9 @@ export function SongEditor({ song }: { song: Song }) {
       rewriteAnchorRef.current = null;
       setRewriteInstruction(null);
       setHasChanges(true);
+      complete("rewrite");
     },
-    [editor]
+    [editor, complete]
   );
 
   const handleRewriteClose = useCallback(() => {
@@ -182,12 +195,13 @@ export function SongEditor({ song }: { song: Song }) {
 
       setSaveStatus("saved");
       setHasChanges(false);
+      complete("write");
       setTimeout(() => setSaveStatus("idle"), 2000);
     } catch {
       setSaveStatus("error");
       setTimeout(() => setSaveStatus("idle"), 3000);
     }
-  }, [editor, saveStatus, song.id, song.title, title]);
+  }, [editor, saveStatus, song.id, song.title, title, complete]);
 
   const generate = useCallback(async () => {
     if (streamingText !== null) return;
@@ -244,6 +258,7 @@ export function SongEditor({ song }: { song: Song }) {
             setStreamingText(null);
             setHasChanges(false);
             setShowReviewNudge(true);
+            complete("write");
             if (event.versionId) setCurrentVersionId(event.versionId);
             return;
           }
@@ -254,7 +269,7 @@ export function SongEditor({ song }: { song: Song }) {
       setGenError(err instanceof Error ? err.message : "Error desconocido");
       setTimeout(() => setGenError(null), 6000);
     }
-  }, [editor, song.id, streamingText]);
+  }, [editor, song.id, streamingText, complete]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -328,7 +343,9 @@ export function SongEditor({ song }: { song: Song }) {
             variant="ghost"
             size="sm"
             onClick={() => {
-              setShowReview((v) => !v);
+              const opening = !showReview;
+              setShowReview(opening);
+              if (opening) complete("review");
               setShowReviewNudge(false);
             }}
             disabled={isGenerating}
@@ -381,6 +398,7 @@ export function SongEditor({ song }: { song: Song }) {
                 onClick={() => {
                   setShowReview(true);
                   setShowReviewNudge(false);
+                  complete("review");
                 }}
               >
                 Pedir feedback
@@ -416,7 +434,7 @@ export function SongEditor({ song }: { song: Song }) {
           currentVersionId={currentVersionId}
           currentLyrics={editor?.getText({ blockSeparator: "\n" }) ?? ""}
           onRestore={handleRestore}
-          onCompare={(text, label) => setCompareTarget({ text, label })}
+          onCompare={(text, label) => { setCompareTarget({ text, label }); complete("compare"); }}
           onClose={() => setShowHistory(false)}
         />
       )}
@@ -427,6 +445,15 @@ export function SongEditor({ song }: { song: Song }) {
           older={compareTarget}
           newer={{ text: editor?.getText({ blockSeparator: "\n" }) ?? "", label: "Versión actual" }}
           onClose={() => setCompareTarget(null)}
+        />
+      )}
+
+      {/* Onboarding checklist — only first time, dismissed after completing all steps */}
+      {!dismissed && (
+        <OnboardingChecklist
+          completed={completed}
+          allDone={allDone}
+          onDismiss={dismiss}
         />
       )}
 
