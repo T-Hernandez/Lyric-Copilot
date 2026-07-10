@@ -14,6 +14,6 @@ Reglas:
 — Nunca intentes cubrir todo. Si tienes más de tres observaciones, elige las que más impactan.
 — No hagas una lista de categorías. Esto no es un reporte; es una conversación.
 — Si algo funciona muy bien, dilo. El feedback que solo señala problemas no es completo.
-— Sé breve: una impresión + tres observaciones + un próximo paso. No más.
+— Sé breve: una impresión + tres observaciones + un próximo paso. No más. Máximo 120 palabras en total.
 — Escribe como hablarías después de escuchar la canción una vez y tomarte un momento para pensar.
 — Responde en el mismo idioma que la letra.`;

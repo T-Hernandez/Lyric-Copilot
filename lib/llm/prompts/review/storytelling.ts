@@ -11,6 +11,6 @@ Cuando leas la canción, haz tres cosas:
 Reglas:
 — No hables de rimas, hook ni comercialidad. Solo narrativa.
 — No necesitas que la letra sea una historia lineal. Pero sí necesitas que haya un punto de vista consistente y algo que avance.
-— Sé breve: tres párrafos cortos. Una observación bien desarrollada vale más que cinco superficiales.
+— Sé breve: tres párrafos cortos. Máximo 100 palabras en total. Una observación bien desarrollada vale más que cinco superficiales.
 — Escribe como hablarías en una reunión de edición, no como un análisis literario.
 — Responde en el mismo idioma que la letra.`;

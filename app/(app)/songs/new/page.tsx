@@ -35,8 +35,8 @@ const MOODS = [
 
 export default function NewSongPage() {
   const router = useRouter();
-  const [genre, setGenre] = useState("");
-  const [mood, setMood] = useState("");
+  const [genres, setGenres] = useState<string[]>([]);
+  const [moods, setMoods] = useState<string[]>([]);
   const [language, setLanguage] = useState("es");
   const [styleReferenceIds, setStyleReferenceIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -51,8 +51,8 @@ export default function NewSongPage() {
     const data = {
       title: (form.get("title") as string) || "Sin título",
       theme: (form.get("theme") as string) || undefined,
-      genre: genre || undefined,
-      mood: mood || undefined,
+      genre: genres.length ? genres.join(", ") : undefined,
+      mood: moods.length ? moods.join(", ") : undefined,
       language,
       styleReferenceIds: styleReferenceIds.length ? styleReferenceIds : undefined,
     };
@@ -117,17 +117,17 @@ export default function NewSongPage() {
               Género{" "}
               <span className="text-muted-foreground font-normal">(opcional)</span>
             </Label>
-            {genre && (
+            {genres.length > 0 && (
               <button
                 type="button"
-                onClick={() => setGenre("")}
+                onClick={() => setGenres([])}
                 className="text-xs text-muted-foreground hover:text-foreground"
               >
                 Limpiar
               </button>
             )}
           </div>
-          <ChipSelector options={GENRES} value={genre} onChange={setGenre} />
+          <ChipSelector options={GENRES} value={genres} onChange={setGenres} multiSelect />
         </div>
 
         <div className="space-y-1.5">
@@ -136,17 +136,17 @@ export default function NewSongPage() {
               Mood{" "}
               <span className="text-muted-foreground font-normal">(opcional)</span>
             </Label>
-            {mood && (
+            {moods.length > 0 && (
               <button
                 type="button"
-                onClick={() => setMood("")}
+                onClick={() => setMoods([])}
                 className="text-xs text-muted-foreground hover:text-foreground"
               >
                 Limpiar
               </button>
             )}
           </div>
-          <ChipSelector options={MOODS} value={mood} onChange={setMood} />
+          <ChipSelector options={MOODS} value={moods} onChange={setMoods} multiSelect />
         </div>
 
         <div className="space-y-1.5">
@@ -173,8 +173,8 @@ export default function NewSongPage() {
           <StyleReferenceSelector
             selectedIds={styleReferenceIds}
             onChange={setStyleReferenceIds}
-            genre={genre || undefined}
-            mood={mood || undefined}
+            genre={genres[0]}
+            mood={moods[0]}
           />
         </div>
 

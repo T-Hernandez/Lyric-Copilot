@@ -302,14 +302,19 @@ export function SongEditor({ song }: { song: Song }) {
           disabled={isGenerating}
         />
         <div className="flex items-center gap-3 shrink-0">
-          <span className="text-xs text-muted-foreground min-w-[80px] text-right">
-            {saveStatus === "saving" && "Guardando..."}
-            {saveStatus === "saved" && "Guardado"}
-            {saveStatus === "error" && "No se pudo guardar"}
-            {saveStatus === "idle" && hasChanges && "Cambios sin guardar"}
-          </span>
-          <Button onClick={save} disabled={saveStatus === "saving" || isGenerating} size="sm">
-            Guardar
+          {saveStatus === "error" && (
+            <span className="text-xs text-destructive">No se pudo guardar</span>
+          )}
+          {saveStatus === "idle" && hasChanges && (
+            <span className="text-xs text-muted-foreground">Sin guardar</span>
+          )}
+          <Button
+            onClick={save}
+            disabled={saveStatus === "saving" || isGenerating}
+            size="sm"
+            variant={saveStatus === "saved" ? "outline" : "default"}
+          >
+            {saveStatus === "saving" ? "Guardando..." : saveStatus === "saved" ? "✓ Guardado" : "Guardar"}
           </Button>
         </div>
       </div>
@@ -367,6 +372,19 @@ export function SongEditor({ song }: { song: Song }) {
       {genError && (
         <div className="px-4 py-2 bg-destructive/10 text-destructive text-sm border-b">
           {genError}
+        </div>
+      )}
+
+      {/* Empty state — solo para canciones nuevas antes de escribir o generar */}
+      {!song.current_version && !hasChanges && !isGenerating && (
+        <div className="max-w-2xl mx-auto w-full px-6 pt-8">
+          <div className="rounded-lg border border-dashed bg-muted/20 px-6 py-8 text-center">
+            <p className="text-sm font-medium mb-1">Tu canción empieza aquí</p>
+            <p className="text-xs text-muted-foreground mb-5">
+              Escribe tu primera línea en el editor, o genera un borrador completo con IA.
+            </p>
+            <Button size="sm" onClick={generate}>✦ Generar borrador con IA</Button>
+          </div>
         </div>
       )}
 

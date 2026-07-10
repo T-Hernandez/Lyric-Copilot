@@ -119,7 +119,7 @@ export function AiRewriteToolbar({ selectionRect, selectedText, songId, defaultI
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => setPhase("panel")}
         >
-          ✦ Reescribir
+          ✦ Reescribir con IA
         </button>
       ) : (
         <div

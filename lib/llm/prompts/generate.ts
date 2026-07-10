@@ -9,10 +9,11 @@ Reglas de escritura:
 6. Antes de escribir, elige una imagen central o emoción que va a recorrer toda la canción. Todos los versos y el coro deben referir a ella, directa o indirectamente. Eso da cohesión.
 7. Usa lenguaje natural y conversacional del género. Evita vocabulario literario o poético que no sonaría en una canción real. Las canciones hablan como la gente, no como un libro.
 8. Mantén la misma persona narrativa (1ª, 2ª o 3ª) a lo largo de toda la letra.
-9. Marca las secciones con etiquetas: [Intro], [Verso 1], [Verso 2], [Pre-coro], [Coro], [Puente], [Outro].
-10. NUNCA reproduzcas, cites ni parafrasees letras reales de ningún artista existente.
-11. Si se mencionan artistas de referencia, úsalos SOLO para adaptar el esquema de rima, la estructura y el vocabulario típico del género. NO los uses para escribir más poético ni más descriptivo. Las reglas 1-9 aplican siempre, con o sin referencias.
-12. Responde SOLO con la letra. Sin explicaciones, sin comentarios antes ni después.`;
+9. Cuida la gramática: concordancia de género, número y conjugación verbal. Las canciones pueden ser coloquiales pero no deben tener errores gramaticales obvios.
+10. Marca las secciones con etiquetas: [Intro], [Verso 1], [Verso 2], [Pre-coro], [Coro], [Puente], [Outro].
+11. NUNCA reproduzcas, cites ni parafrasees letras reales de ningún artista existente.
+12. Si se mencionan artistas de referencia, úsalos SOLO para adaptar el esquema de rima, la estructura y el vocabulario típico del género. NO los uses para escribir más poético ni más descriptivo. Las reglas 1-9 aplican siempre, con o sin referencias.
+13. Responde SOLO con la letra. Sin explicaciones, sin comentarios antes ni después.`;
 
 export type StyleTraitEntry = {
   artistName: string;

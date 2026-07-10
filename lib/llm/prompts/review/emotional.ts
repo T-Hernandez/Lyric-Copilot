@@ -13,6 +13,6 @@ Cuando leas la canción, haz tres cosas:
 Reglas:
 — No hables de rimas, estructura, comercialidad ni storytelling. Solo emoción.
 — Si la letra tiene algo genuino, dilo. Si se siente forzada, dilo también. La honestidad es el único respeto posible.
-— Sé breve: tres párrafos cortos. La densidad importa más que la extensión.
+— Sé breve: tres párrafos cortos. La densidad importa más que la extensión. Máximo 100 palabras en total.
 — Escribe como hablarías en un estudio, no como un reporte.
 — Responde en el mismo idioma que la letra.`;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 
@@ -45,6 +45,7 @@ export function VersionDiffPanel({ songId, older, newer, onClose }: Props) {
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisDone, setAnalysisDone] = useState(false);
+  const analysisRef = useRef<HTMLDivElement>(null);
 
   const diff = diffLines(older.text, newer.text);
   const hasChanges = diff.some((l) => l.type !== "unchanged");
@@ -59,6 +60,7 @@ export function VersionDiffPanel({ songId, older, newer, onClose }: Props) {
     setIsAnalyzing(true);
     setAnalysis("");
     setAnalysisDone(false);
+    setTimeout(() => analysisRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
 
     try {
       const res = await fetch(`/api/songs/${songId}/compare`, {
@@ -119,6 +121,19 @@ export function VersionDiffPanel({ songId, older, newer, onClose }: Props) {
 
         {/* Diff view */}
         <div className="flex-1 overflow-y-auto">
+          {/* AI analysis — at the top so es visible inmediatamente al analizar */}
+          {analysis !== null && (
+            <div ref={analysisRef} className="px-4 py-4 border-b bg-muted/20">
+              <p className="text-xs text-muted-foreground mb-3 font-medium">Análisis del cambio</p>
+              <div className="text-sm leading-relaxed text-foreground prose prose-sm max-w-none prose-p:my-1.5">
+                <ReactMarkdown>{analysis}</ReactMarkdown>
+                {isAnalyzing && (
+                  <span className="inline-block w-0.5 h-3.5 bg-foreground/60 ml-px align-middle animate-pulse" />
+                )}
+              </div>
+            </div>
+          )}
+
           {!hasChanges ? (
             <p className="text-sm text-muted-foreground px-4 py-6 text-center">
               Sin cambios entre estas versiones.
@@ -143,19 +158,6 @@ export function VersionDiffPanel({ songId, older, newer, onClose }: Props) {
                   </div>
                 );
               })}
-            </div>
-          )}
-
-          {/* AI analysis */}
-          {analysis !== null && (
-            <div className="px-4 py-4 border-t">
-              <p className="text-xs text-muted-foreground mb-3">Análisis del cambio</p>
-              <div className="text-sm leading-relaxed text-foreground prose prose-sm max-w-none prose-p:my-1.5">
-                <ReactMarkdown>{analysis}</ReactMarkdown>
-                {isAnalyzing && (
-                  <span className="inline-block w-0.5 h-3.5 bg-foreground/60 ml-px align-middle animate-pulse" />
-                )}
-              </div>
             </div>
           )}
         </div>

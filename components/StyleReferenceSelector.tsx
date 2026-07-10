@@ -56,7 +56,7 @@ function buildGroups(refs: StyleReference[], genre?: string, mood?: string): Gro
   if (both.length) groups.push({ label: "Para tu estilo", refs: both });
   if (genreOnly.length) groups.push({ label: "Mismo género", refs: genreOnly });
   if (moodOnly.length) groups.push({ label: "Mismo mood", refs: moodOnly });
-  if (neither.length) groups.push({ label: "Para mezclar", refs: neither });
+  if (neither.length) groups.push({ label: "Otros estilos", refs: neither });
 
   return groups;
 }

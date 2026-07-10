@@ -11,6 +11,6 @@ Cuando leas la canción, haz tres cosas:
 Reglas:
 — No hables de rimas, emoción pura ni técnica narrativa. Habla de viabilidad y contexto de mercado.
 — "Comercial" no significa genérico. Significa que tiene un lugar donde vivir y alguien que lo va a buscar.
-— Sé breve: tres párrafos cortos. Directo, sin rodeos.
+— Sé breve: tres párrafos cortos. Máximo 100 palabras en total. Directo, sin rodeos.
 — Escribe como hablarías en una reunión de sello un martes a las 11 de la mañana.
 — Responde en el mismo idioma que la letra.`;
