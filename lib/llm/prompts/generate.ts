@@ -1,3 +1,5 @@
+import { type WritingStrength, STRENGTH_LABELS } from "@/lib/catalog/writing-strengths";
+
 const SYSTEM_PROMPT = `Eres un compositor profesional. Tu trabajo es escribir letras originales que suenen como canciones reales, no como poemas.
 
 Reglas de escritura:
@@ -12,26 +14,90 @@ Reglas de escritura:
 9. Cuida la gramática: concordancia de género, número y conjugación verbal. Las canciones pueden ser coloquiales pero no deben tener errores gramaticales obvios.
 10. Marca las secciones con etiquetas: [Intro], [Verso 1], [Verso 2], [Pre-coro], [Coro], [Puente], [Outro].
 11. NUNCA reproduzcas, cites ni parafrasees letras reales de ningún artista existente.
-12. Si se mencionan artistas de referencia, úsalos SOLO para adaptar el esquema de rima, la estructura y el vocabulario típico del género. NO los uses para escribir más poético ni más descriptivo. Las reglas 1-9 aplican siempre, con o sin referencias.
+12. Cuando se especifiquen técnicas de escritura: aplícalas para dar forma al enfoque emocional, la estructura y el vocabulario de la letra. Los artistas de referencia calibran el registro del género. Nunca imites un estilo específico: integra las técnicas al servicio de la canción. Las reglas 1-9 aplican siempre.
 13. Responde SOLO con la letra. Sin explicaciones, sin comentarios antes ni después.`;
 
+export type ArtistProfile = {
+  artistName: string;
+  writingStrengths: WritingStrength[] | null;
+  legacyTraits?: Record<string, string> | null;
+};
+
+/** @deprecated Use ArtistProfile instead */
 export type StyleTraitEntry = {
   artistName: string;
-  traits: {
-    rhyme_scheme?: string;
-    imagery?: string;
-    vocabulary?: string;
-    structure?: string;
-    notes?: string;
-  };
+  traits: Record<string, string>;
 };
+
+function synthesizeStyles(artists: ArtistProfile[]): string {
+  const modern = artists.filter((a) => a.writingStrengths?.length);
+  const legacy = artists.filter((a) => !a.writingStrengths?.length);
+
+  const parts: string[] = [];
+
+  if (modern.length) {
+    const counts = new Map<WritingStrength, number>();
+    for (const artist of modern) {
+      for (const s of artist.writingStrengths!) {
+        counts.set(s, (counts.get(s) ?? 0) + 1);
+      }
+    }
+
+    const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+
+    parts.push("Técnicas de escritura a priorizar:");
+
+    if (modern.length === 1) {
+      for (const [s] of sorted) {
+        parts.push(`• ${STRENGTH_LABELS[s]}`);
+      }
+    } else {
+      const high = sorted.filter(([, c]) => c >= 2);
+      const medium = sorted.filter(([, c]) => c < 2);
+
+      if (high.length) {
+        parts.push("Prioridad alta (compartidas por múltiples referencias):");
+        for (const [s] of high) parts.push(`  • ${STRENGTH_LABELS[s]}`);
+      }
+      if (medium.length) {
+        parts.push("Complementarias:");
+        for (const [s] of medium) parts.push(`  • ${STRENGTH_LABELS[s]}`);
+      }
+    }
+
+    parts.push(`\nReferencias: ${modern.map((a) => a.artistName).join(", ")}`);
+    parts.push("Calibra el registro de género y la estructura basándote en estos artistas.");
+  }
+
+  if (legacy.length) {
+    if (parts.length) parts.push("");
+    parts.push(
+      "Referencias de estilo — adapta solo el esquema de rima, la estructura y el vocabulario del género. Las reglas 1-9 siguen activas:"
+    );
+    for (const artist of legacy) {
+      const t = artist.legacyTraits;
+      if (!t) {
+        parts.push(`- ${artist.artistName}`);
+        continue;
+      }
+      const lines = [`- ${artist.artistName}:`];
+      if (t.rhyme_scheme) lines.push(`  Rima: ${t.rhyme_scheme}`);
+      if (t.vocabulary) lines.push(`  Vocabulario: ${t.vocabulary}`);
+      if (t.structure) lines.push(`  Estructura: ${t.structure}`);
+      if (t.notes) lines.push(`  Notas: ${t.notes}`);
+      parts.push(lines.join("\n"));
+    }
+  }
+
+  return parts.join("\n");
+}
 
 export function buildGeneratePrompt(input: {
   theme?: string | null;
   genre?: string | null;
   mood?: string | null;
   language: string;
-  styleReferences?: StyleTraitEntry[];
+  styleReferences?: ArtistProfile[];
 }): { systemPrompt: string; userPrompt: string } {
   const parts: string[] = [];
 
@@ -41,16 +107,8 @@ export function buildGeneratePrompt(input: {
   if (input.theme) parts.push(`Tema o idea central: ${input.theme}`);
 
   if (input.styleReferences?.length) {
-    parts.push("\nReferencias de estilo — adapta solo el esquema de rima, la estructura y el vocabulario del género. Las reglas de escritura siguen siendo las mismas:");
-    for (const ref of input.styleReferences) {
-      const lines: string[] = [`- ${ref.artistName}:`];
-      if (ref.traits.rhyme_scheme) lines.push(`  Rima: ${ref.traits.rhyme_scheme}`);
-      if (ref.traits.vocabulary) lines.push(`  Vocabulario: ${ref.traits.vocabulary}`);
-      if (ref.traits.structure) lines.push(`  Estructura: ${ref.traits.structure}`);
-      if (ref.traits.notes) lines.push(`  Notas: ${ref.traits.notes}`);
-      // imagery omitted: pushes toward poetic/descriptive language
-      parts.push(lines.join("\n"));
-    }
+    const styleSection = synthesizeStyles(input.styleReferences);
+    if (styleSection) parts.push(`\n${styleSection}`);
   }
 
   parts.push("\nEscribe una letra completa basada en estos parámetros.");

@@ -10,7 +10,7 @@ export async function GET() {
 
   const { data, error } = await sb
     .from("style_references")
-    .select("id, artist_name, genres, moods, languages")
+    .select("id, artist_name, genres, moods, languages, artist_type, core_lesson, writing_strengths, shines_when")
     .eq("is_curated", true)
     .order("artist_name");
 

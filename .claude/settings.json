@@ -35,7 +35,9 @@
       "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://127.0.0.1:3099/login --max-time 8)",
       "Bash(mkdir -p \"c:\\\\Users\\\\fines\\\\Downloads\\\\Lyric-Copilot\\\\app\\\\api\\\\songs\\\\[id]\\\\review\")",
       "Bash(mkdir -p \"c:\\\\Users\\\\fines\\\\Downloads\\\\Lyric-Copilot\\\\app\\\\api\\\\songs\\\\[id]\\\\compare\")",
-      "Bash(git rm *)"
+      "Bash(git rm *)",
+      "Skill(artifact-design)",
+      "Skill(artifact-design:*)"
     ],
     "additionalDirectories": [
       "c:\\Users\\fines\\Downloads\\Lyric-Copilot\\app\\api\\songs\\[id]",

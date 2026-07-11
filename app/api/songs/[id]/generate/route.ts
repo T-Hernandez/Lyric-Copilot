@@ -1,6 +1,7 @@
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { streamCompletion } from "@/lib/llm/router";
-import { buildGeneratePrompt, type StyleTraitEntry } from "@/lib/llm/prompts/generate";
+import { buildGeneratePrompt, type ArtistProfile } from "@/lib/llm/prompts/generate";
+import { type WritingStrength } from "@/lib/catalog/writing-strengths";
 import { saveNewVersion } from "@/lib/songs/versioning";
 import { textToTiptapJson } from "@/lib/songs/textToTiptapJson";
 
@@ -23,20 +24,24 @@ export async function POST(_req: Request, { params }: { params: Params }) {
 
   if (!song) return new Response(JSON.stringify({ error: "Not found" }), { status: 404 });
 
-  // Fetch style references with their traits
   const { data: styleRows } = await sb
     .from("song_style_references")
-    .select("style_reference_id, style_references(artist_name, style_traits)")
+    .select("style_reference_id, style_references(artist_name, writing_strengths, style_traits)")
     .eq("song_id", id)
     .not("style_reference_id", "is", null);
 
-  const styleReferences: StyleTraitEntry[] = (styleRows ?? [])
+  const styleReferences: ArtistProfile[] = (styleRows ?? [])
     .filter((r) => r.style_references)
     .map((r) => {
-      const ref = r.style_references as unknown as { artist_name: string; style_traits: Record<string, string> };
+      const ref = r.style_references as unknown as {
+        artist_name: string;
+        writing_strengths: WritingStrength[] | null;
+        style_traits: Record<string, string> | null;
+      };
       return {
         artistName: ref.artist_name,
-        traits: ref.style_traits,
+        writingStrengths: ref.writing_strengths ?? null,
+        legacyTraits: ref.writing_strengths ? null : ref.style_traits,
       };
     });
 
