@@ -375,6 +375,15 @@ export function SongEditor({ song }: { song: Song }) {
         </div>
       )}
 
+      {/* Onboarding stepper — inline, parte del chrome de cabecera */}
+      {!dismissed && (
+        <OnboardingChecklist
+          completed={completed}
+          allDone={allDone}
+          onDismiss={dismiss}
+        />
+      )}
+
       {/* Empty state — solo para canciones nuevas antes de escribir o generar */}
       {!song.current_version && !hasChanges && !isGenerating && (
         <div className="max-w-2xl mx-auto w-full px-6 pt-8">
@@ -463,15 +472,6 @@ export function SongEditor({ song }: { song: Song }) {
           older={compareTarget}
           newer={{ text: editor?.getText({ blockSeparator: "\n" }) ?? "", label: "Versión actual" }}
           onClose={() => setCompareTarget(null)}
-        />
-      )}
-
-      {/* Onboarding checklist — only first time, dismissed after completing all steps */}
-      {!dismissed && (
-        <OnboardingChecklist
-          completed={completed}
-          allDone={allDone}
-          onDismiss={dismiss}
         />
       )}
 
