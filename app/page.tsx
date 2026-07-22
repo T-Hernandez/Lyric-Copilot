@@ -1,10 +1,11 @@
 import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
 
 const STEPS = [
-  { n: "01", icon: "✍️", title: "Escribe", desc: "Empieza desde una idea o genera un borrador con IA." },
-  { n: "02", icon: "🎧", title: "Pide feedback", desc: "Recibe análisis específico sobre tu letra: hook, emoción, cohesión." },
-  { n: "03", icon: "✨", title: "Reescribe", desc: "Cambia lo que no funciona, línea por línea, manteniendo tu voz." },
-  { n: "04", icon: "📈", title: "Compara", desc: "Mira cómo evolucionó tu canción versión por versión." },
+  { n: "01", title: "Escribe", desc: "Empieza desde una idea o genera un borrador con IA." },
+  { n: "02", title: "Pide feedback", desc: "Recibe análisis específico sobre tu letra: hook, emoción, cohesión." },
+  { n: "03", title: "Reescribe", desc: "Cambia lo que no funciona, línea por línea, manteniendo tu voz." },
+  { n: "04", title: "Compara", desc: "Mira cómo evolucionó tu canción versión por versión." },
 ];
 
 const COMPARISON = [
@@ -19,16 +20,16 @@ export default function LandingPage() {
       {/* Nav */}
       <header className="border-b px-6 py-4 flex items-center justify-between">
         <span className="font-semibold text-lg tracking-tight">Lyric Copilot</span>
-        <nav className="flex items-center gap-4">
+        <nav className="flex items-center gap-3">
           <Link
             href="/login"
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className={buttonVariants({ variant: "ghost", size: "sm" })}
           >
             Iniciar sesión
           </Link>
           <Link
             href="/signup"
-            className="text-sm bg-foreground text-background px-3 py-1.5 rounded-md hover:opacity-90 transition-opacity"
+            className={buttonVariants({ size: "sm" })}
           >
             Crear cuenta
           </Link>
@@ -37,8 +38,8 @@ export default function LandingPage() {
 
       <main className="flex-1 flex flex-col">
         {/* Hero */}
-        <section className="flex flex-col items-center justify-center text-center px-4 py-16 max-w-3xl mx-auto w-full">
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight leading-tight mb-6">
+        <section className="flex flex-col items-center justify-center text-center px-4 py-20 max-w-3xl mx-auto w-full">
+          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight leading-tight mb-6" style={{ textWrap: "balance" }}>
             No reemplaces tu creatividad.
             <br />
             Perfecciónala.
@@ -48,16 +49,10 @@ export default function LandingPage() {
             Lyric Copilot te ayuda a mejorar las tuyas.
           </p>
           <div className="flex flex-col sm:flex-row gap-3">
-            <Link
-              href="/signup"
-              className="inline-flex items-center justify-center px-6 py-2.5 bg-foreground text-background text-sm font-medium rounded-md hover:opacity-90 transition-opacity"
-            >
+            <Link href="/signup" className={buttonVariants({ size: "lg" })}>
               Empezar a escribir
             </Link>
-            <a
-              href="#como-funciona"
-              className="inline-flex items-center justify-center px-6 py-2.5 border text-sm font-medium rounded-md hover:bg-muted transition-colors"
-            >
+            <a href="#como-funciona" className={buttonVariants({ variant: "outline", size: "lg" })}>
               Ver cómo funciona
             </a>
           </div>
@@ -74,22 +69,16 @@ export default function LandingPage() {
         {/* Cómo funciona */}
         <section id="como-funciona" className="px-4 py-20 max-w-4xl mx-auto w-full">
           <h2 className="text-2xl font-semibold text-center mb-3">Cómo funciona</h2>
-          <p className="text-center text-sm text-muted-foreground mb-12">
+          <p className="text-center text-sm text-muted-foreground mb-14">
             Un flujo diseñado para hacer mejor tu canción, no para reemplazarla.
           </p>
 
-          {/* GIF placeholder — reemplazar con <video> o <img> cuando esté listo */}
-          <div className="rounded-lg border border-dashed border-muted-foreground/30 bg-muted/20 aspect-video max-w-2xl mx-auto mb-14 flex flex-col items-center justify-center gap-2">
-            <p className="text-sm text-muted-foreground">Demo próximamente</p>
-            <p className="text-xs text-muted-foreground/50">
-              Escribe → Feedback → Reescribe → Compara
-            </p>
-          </div>
-
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {STEPS.map(({ n, icon, title, desc }) => (
-              <div key={n} className="space-y-2">
-                <span className="text-2xl">{icon}</span>
+            {STEPS.map(({ n, title, desc }) => (
+              <div key={n} className="space-y-3">
+                <div className="w-8 h-8 rounded-full border border-primary/20 bg-primary/8 flex items-center justify-center">
+                  <span className="text-xs font-semibold text-primary tabular-nums">{n}</span>
+                </div>
                 <h3 className="font-medium">{title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
               </div>
@@ -109,7 +98,7 @@ export default function LandingPage() {
                   </p>
                 </div>
                 <div className="px-4 py-3">
-                  <p className="text-xs font-medium uppercase tracking-wide">Lyric Copilot</p>
+                  <p className="text-xs font-medium text-primary uppercase tracking-wide">Lyric Copilot</p>
                 </div>
               </div>
               {COMPARISON.map(([left, right], i) => (
@@ -129,10 +118,7 @@ export default function LandingPage() {
         {/* CTA final */}
         <section className="px-4 py-24 text-center">
           <h2 className="text-3xl font-bold mb-8">Empieza a escribir gratis.</h2>
-          <Link
-            href="/signup"
-            className="inline-flex items-center justify-center px-8 py-3 bg-foreground text-background text-sm font-medium rounded-md hover:opacity-90 transition-opacity"
-          >
+          <Link href="/signup" className={buttonVariants({ size: "lg" })}>
             Crear cuenta
           </Link>
         </section>

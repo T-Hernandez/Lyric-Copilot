@@ -57,83 +57,91 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <div className="w-full max-w-sm space-y-6">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold">Crear cuenta</h1>
-          <p className="text-muted-foreground text-sm">
-            Registrate para empezar a escribir canciones
-          </p>
+    <div className="flex min-h-screen items-center justify-center p-4 bg-muted/20">
+      <div className="w-full max-w-sm">
+        <div className="text-center mb-7">
+          <Link href="/" className="text-lg font-semibold tracking-tight hover:opacity-80 transition-opacity">
+            Lyric Copilot
+          </Link>
         </div>
 
-        {message ? (
-          <p className="bg-muted rounded-md px-3 py-4 text-sm">{message}</p>
-        ) : (
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                autoComplete="email"
-                placeholder="vos@ejemplo.com"
-                {...register("email")}
-              />
-              {errors.email && (
-                <p className="text-destructive text-xs">
-                  {errors.email.message}
+        <div className="bg-background border rounded-xl shadow-sm px-8 py-8 space-y-6">
+          <div className="space-y-1">
+            <h1 className="text-xl font-semibold">Crear cuenta</h1>
+            <p className="text-muted-foreground text-sm">
+              Registrate para empezar a escribir canciones
+            </p>
+          </div>
+
+          {message ? (
+            <p className="bg-muted rounded-md px-3 py-4 text-sm">{message}</p>
+          ) : (
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  placeholder="vos@ejemplo.com"
+                  {...register("email")}
+                />
+                {errors.email && (
+                  <p className="text-destructive text-xs">
+                    {errors.email.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="password">Contraseña</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  autoComplete="new-password"
+                  {...register("password")}
+                />
+                {errors.password && (
+                  <p className="text-destructive text-xs">
+                    {errors.password.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  autoComplete="new-password"
+                  {...register("confirmPassword")}
+                />
+                {errors.confirmPassword && (
+                  <p className="text-destructive text-xs">
+                    {errors.confirmPassword.message}
+                  </p>
+                )}
+              </div>
+
+              {error && (
+                <p className="bg-destructive/10 text-destructive rounded-md px-3 py-2 text-sm">
+                  {error}
                 </p>
               )}
-            </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="password">Contraseña</Label>
-              <Input
-                id="password"
-                type="password"
-                autoComplete="new-password"
-                {...register("password")}
-              />
-              {errors.password && (
-                <p className="text-destructive text-xs">
-                  {errors.password.message}
-                </p>
-              )}
-            </div>
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? "Creando cuenta..." : "Crear cuenta"}
+              </Button>
+            </form>
+          )}
 
-            <div className="space-y-1.5">
-              <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                {...register("confirmPassword")}
-              />
-              {errors.confirmPassword && (
-                <p className="text-destructive text-xs">
-                  {errors.confirmPassword.message}
-                </p>
-              )}
-            </div>
-
-            {error && (
-              <p className="bg-destructive/10 text-destructive rounded-md px-3 py-2 text-sm">
-                {error}
-              </p>
-            )}
-
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "Creando cuenta..." : "Crear cuenta"}
-            </Button>
-          </form>
-        )}
-
-        <p className="text-muted-foreground text-center text-sm">
-          ¿Ya tienes cuenta?{" "}
-          <Link href="/login" className="text-foreground underline">
-            Inicia sesión
-          </Link>
-        </p>
+          <p className="text-muted-foreground text-center text-sm">
+            ¿Ya tienes cuenta?{" "}
+            <Link href="/login" className="text-foreground underline underline-offset-4">
+              Inicia sesión
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

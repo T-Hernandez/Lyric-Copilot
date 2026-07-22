@@ -22,21 +22,24 @@ export default async function SongsPage() {
     <main className="max-w-3xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold">Mis canciones</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Mis canciones</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Escribe, reescribe, revisa.</p>
         </div>
         <div className="flex items-center gap-4">
           <LogoutButton />
-          <Link href="/songs/new" className={buttonVariants()}>
+          <Link href="/songs/new" className={buttonVariants({ size: "sm" })}>
             Nueva canción
           </Link>
         </div>
       </div>
 
       {!songs?.length ? (
-        <div className="text-center py-20 text-muted-foreground">
-          <p className="text-lg mb-2">Ninguna canción todavía.</p>
-          <p className="text-sm mb-6">Empieza con algo pequeño: un título, una emoción, una idea.</p>
+        <div className="text-center py-24">
+          <p className="text-5xl mb-5 text-muted-foreground/20 select-none font-light">♪</p>
+          <p className="font-medium mb-1">Ninguna canción todavía</p>
+          <p className="text-sm text-muted-foreground mb-6">
+            Empieza con algo pequeño: un título, una emoción, una idea.
+          </p>
           <Link href="/songs/new" className={buttonVariants({ variant: "outline" })}>
             Empezar a escribir
           </Link>
@@ -45,8 +48,9 @@ export default async function SongsPage() {
         <div className="flex flex-col gap-2">
           {songs.map((song) => (
             <Link key={song.id} href={`/songs/${song.id}`} className="block group">
-              <Card className="transition-colors group-hover:bg-accent/40">
+              <Card className="transition-all group-hover:border-primary/30 group-hover:bg-accent/30">
                 <CardContent className="p-4 flex items-center gap-3">
+                  <div className="w-0.5 self-stretch rounded-full bg-border group-hover:bg-primary/50 transition-colors shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate">
                       {song.title || "Sin título"}
@@ -70,6 +74,17 @@ export default async function SongsPage() {
                       month: "short",
                     })}
                   </p>
+                  <svg
+                    className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-muted-foreground/60 shrink-0 transition-colors"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M9 18l6-6-6-6" />
+                  </svg>
                 </CardContent>
               </Card>
             </Link>
