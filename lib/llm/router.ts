@@ -30,7 +30,7 @@ export async function* streamCompletion(params: {
   userPrompt: string;
   userId: string;
   songId?: string;
-  callType: "generate" | "rewrite" | "review";
+  callType: "generate" | "rewrite" | "review" | "compare";
 }): AsyncGenerator<string> {
   const order = getFallbackOrder();
   let lastError: unknown;

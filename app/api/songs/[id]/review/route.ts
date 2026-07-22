@@ -1,17 +1,16 @@
 import { NextRequest } from "next/server";
+import { z } from "zod";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { streamCompletion } from "@/lib/llm/router";
-import {
-  type ReviewLens,
-  type ReviewMetadata,
-  buildUserPrompt,
-} from "@/lib/llm/prompts/review/shared";
+import { buildUserPrompt } from "@/lib/llm/prompts/review/shared";
+import { type ReviewLens } from "@/lib/llm/prompts/review/shared";
 import { SYSTEM_PROMPT as emotional } from "@/lib/llm/prompts/review/emotional";
 import { SYSTEM_PROMPT as storytelling } from "@/lib/llm/prompts/review/storytelling";
 import { SYSTEM_PROMPT as hook } from "@/lib/llm/prompts/review/hook";
 import { SYSTEM_PROMPT as lyrics } from "@/lib/llm/prompts/review/lyrics";
 import { SYSTEM_PROMPT as commercial } from "@/lib/llm/prompts/review/commercial";
 import { SYSTEM_PROMPT as full } from "@/lib/llm/prompts/review/full";
+import { checkRateLimit } from "@/lib/llm/rateLimit";
 
 const SYSTEM_PROMPTS: Record<ReviewLens, string> = {
   emotional,
@@ -22,11 +21,18 @@ const SYSTEM_PROMPTS: Record<ReviewLens, string> = {
   full,
 };
 
-type ReviewBody = {
-  lens: ReviewLens;
-  lyrics: string;
-  metadata?: ReviewMetadata;
-};
+const ReviewBodySchema = z.object({
+  lens: z.enum(["emotional", "storytelling", "hook", "lyrics", "commercial", "full"]),
+  lyrics: z.string().min(1).max(10000),
+  metadata: z
+    .object({
+      genre: z.string().max(100).optional(),
+      emotionalIntent: z.string().max(200).optional(),
+      sonicInfluences: z.array(z.string().max(100)).max(10).optional(),
+    })
+    .optional()
+    .default({}),
+});
 
 type Params = Promise<{ id: string }>;
 
@@ -34,23 +40,36 @@ export async function POST(req: NextRequest, { params }: { params: Params }) {
   const { id } = await params;
   const sb = await getSupabaseServer();
 
-  const {
-    data: { user },
-  } = await sb.auth.getUser();
+  const { data: { user } } = await sb.auth.getUser();
   if (!user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
 
-  const body: ReviewBody = await req.json();
-  const { lens, lyrics: lyricsText, metadata = {} } = body;
-
-  if (!lens || !SYSTEM_PROMPTS[lens]) {
-    return new Response(JSON.stringify({ error: "Invalid lens" }), { status: 400 });
-  }
-  if (!lyricsText?.trim()) {
-    return new Response(JSON.stringify({ error: "No lyrics provided" }), { status: 400 });
+  const body = await req.json().catch(() => null);
+  const parsed = ReviewBodySchema.safeParse(body);
+  if (!parsed.success) {
+    return new Response(JSON.stringify({ error: "Invalid request" }), { status: 400 });
   }
 
+  // H-1: Verificar que el song existe y pertenece al usuario autenticado
+  const { data: song } = await sb
+    .from("songs")
+    .select("id")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .single();
+
+  if (!song) {
+    return new Response(JSON.stringify({ error: "Not found" }), { status: 404 });
+  }
+
+  // H-2: Rate limiting — max 30 llamadas LLM por hora por usuario
+  const { allowed } = await checkRateLimit(sb, user.id);
+  if (!allowed) {
+    return new Response(JSON.stringify({ error: "Too many requests" }), { status: 429 });
+  }
+
+  const { lens, lyrics: lyricsText, metadata } = parsed.data;
   const systemPrompt = SYSTEM_PROMPTS[lens];
   const userPrompt = buildUserPrompt(lyricsText, metadata);
 
@@ -83,7 +102,7 @@ export async function POST(req: NextRequest, { params }: { params: Params }) {
       } catch (err) {
         console.error("[review]", err);
         controller.enqueue(
-          enc.encode(`data: ${JSON.stringify({ error: String(err) })}\n\n`)
+          enc.encode(`data: ${JSON.stringify({ error: "Error al procesar la solicitud" })}\n\n`)
         );
         controller.close();
       }

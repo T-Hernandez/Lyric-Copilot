@@ -12,7 +12,7 @@ function defaultModel(provider: string): string {
 export async function logLlmCall(params: {
   userId: string;
   songId?: string;
-  callType: "generate" | "rewrite" | "review";
+  callType: "generate" | "rewrite" | "review" | "compare";
   provider: string;
   model?: string;
   tokensIn?: number;

@@ -21,7 +21,7 @@ export async function GET(_req: Request, { params }: { params: Params }) {
     .limit(20);
 
   if (error) {
-    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+    return new Response(JSON.stringify({ error: "Internal server error" }), { status: 500 });
   }
 
   return Response.json(data ?? []);

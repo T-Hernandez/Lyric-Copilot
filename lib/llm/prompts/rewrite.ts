@@ -14,7 +14,7 @@ export function buildRewritePrompt(input: {
 }): { systemPrompt: string; userPrompt: string } {
   const parts: string[] = [];
 
-  parts.push(`Fragmento a reescribir:\n${input.selectedText}`);
+  parts.push(`Fragmento a reescribir:\n<fragmento>\n${input.selectedText}\n</fragmento>`);
 
   const context: string[] = [];
   if (input.genre) context.push(`Género: ${input.genre}`);

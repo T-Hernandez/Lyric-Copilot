@@ -15,5 +15,5 @@ Reglas:
 — Responde en el mismo idioma de las letras.`;
 
 export function buildComparePrompt(versionA: string, versionB: string, labels: { a: string; b: string }): string {
-  return `${labels.a}:\n${versionA}\n\n---\n\n${labels.b}:\n${versionB}`;
+  return `<${labels.a}>\n${versionA}\n</${labels.a}>\n\n<${labels.b}>\n${versionB}\n</${labels.b}>`;
 }

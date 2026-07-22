@@ -23,7 +23,7 @@ export async function GET() {
     .select("id, title, genre, mood, language, status, updated_at, created_at")
     .order("updated_at", { ascending: false });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   return NextResponse.json(data);
 }
 
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: "Internal server error" }, { status: 500 });
 
   if (styleReferenceIds?.length) {
     await sb.from("song_style_references").insert(

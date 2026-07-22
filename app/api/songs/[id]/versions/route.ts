@@ -25,7 +25,7 @@ export async function GET(_req: NextRequest, { params }: { params: Params }) {
     .eq("song_id", id)
     .order("version_number", { ascending: false });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   return NextResponse.json(data);
 }
 

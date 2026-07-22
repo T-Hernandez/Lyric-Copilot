@@ -51,7 +51,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Params }) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   return NextResponse.json(data);
 }
 
@@ -64,6 +64,6 @@ export async function DELETE(_req: NextRequest, { params }: { params: Params }) 
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { error } = await sb.from("songs").delete().eq("id", id);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   return new NextResponse(null, { status: 204 });
 }
