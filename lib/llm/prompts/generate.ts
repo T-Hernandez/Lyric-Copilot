@@ -20,6 +20,7 @@ Reglas de escritura:
 export type ArtistProfile = {
   artistName: string;
   writingStrengths: WritingStrength[] | null;
+  styleDirective?: string | null;
   legacyTraits?: Record<string, string> | null;
 };
 
@@ -62,6 +63,14 @@ function synthesizeStyles(artists: ArtistProfile[]): string {
       if (medium.length) {
         parts.push("Complementarias:");
         for (const [s] of medium) parts.push(`  • ${STRENGTH_LABELS[s]}`);
+      }
+    }
+
+    const withDirectives = modern.filter((a) => a.styleDirective);
+    if (withDirectives.length) {
+      parts.push("\nCómo aplicar estas técnicas:");
+      for (const a of withDirectives) {
+        parts.push(`— ${a.artistName}: ${a.styleDirective}`);
       }
     }
 

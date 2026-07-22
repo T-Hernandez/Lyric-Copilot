@@ -2,6 +2,7 @@ import { getSupabaseServer } from "@/lib/supabase/server";
 import { streamCompletion } from "@/lib/llm/router";
 import { buildGeneratePrompt, type ArtistProfile } from "@/lib/llm/prompts/generate";
 import { type WritingStrength } from "@/lib/catalog/writing-strengths";
+import { ARTIST_DIRECTIVES } from "@/lib/catalog/artist-directives";
 import { saveNewVersion } from "@/lib/songs/versioning";
 import { textToTiptapJson } from "@/lib/songs/textToTiptapJson";
 
@@ -41,6 +42,7 @@ export async function POST(_req: Request, { params }: { params: Params }) {
       return {
         artistName: ref.artist_name,
         writingStrengths: ref.writing_strengths ?? null,
+        styleDirective: ARTIST_DIRECTIVES[ref.artist_name] ?? null,
         legacyTraits: ref.writing_strengths ? null : ref.style_traits,
       };
     });
